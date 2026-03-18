@@ -1,3 +1,3 @@
 ## Glassroof
 
-Glassdoor inspired housing app.
+Glassdoor inspired housing app
