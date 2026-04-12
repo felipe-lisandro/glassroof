@@ -58,6 +58,22 @@ glassroof-imobiliario/
 │
 └── README.md                 # Documentação do projeto
 ```
+
+## Diagrama de Classes
+**User**: Usuário da aplicação, que pode ser pessoa ou empresa.
+
+**Property**: Imóvel cadastrado na plataforma, com atributos como endereço e descrição.
+
+**Category**: Categoria de avaliação (vizinhança, localização, etc.).
+
+**Review**: Avaliação feita por um usuário sobre um imóvel, associada a uma categoria específica. Ou então uma avaliação geral do imóvel.
+
+**Location**: Localização do imóvel, com atributos como rua e número.
+
+**Image**: Imagens associadas a um imóvel, com atributos como URL e descrição.
+
+
+![alt text](util/class_diagram.png)
 ## ▶️ Como dar Run a Aplicação
 ### Back-end (Flask API)
 1. Navegue até a pasta `backend`:
