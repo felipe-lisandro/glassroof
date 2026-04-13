@@ -5,6 +5,23 @@ api_bp = Blueprint("api", __name__)
 
 @api_bp.route("/health")
 def health_check():
+    """Verifica se a API e o banco de dados estao funcionando.
+    ---
+    tags:
+      - Status
+    responses:
+      200:
+        description: Status da API e conexao com o banco
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: ok
+            database:
+              type: string
+              example: connected
+    """
     from app import db
 
     try:
