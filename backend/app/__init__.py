@@ -25,14 +25,17 @@ def create_app(config_class=Config):
     Swagger(app, template=SWAGGER_TEMPLATE)
 
     from app.routes import api_bp
+    from app.routes.user_routes import user_bp
 
     app.register_blueprint(api_bp)
+    app.register_blueprint(user_bp)
 
     @app.route("/")
     def index():
         return redirect("/apidocs")
 
     with app.app_context():
+        from app import models  # noqa: F401 — ensure models are registered
         db.create_all()
 
     return app
