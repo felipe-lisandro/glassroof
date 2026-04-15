@@ -1,5 +1,5 @@
 from flasgger import Swagger
-from flask import Flask, redirect
+from flask import Flask
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 
@@ -25,14 +25,12 @@ def create_app(config_class=Config):
     Swagger(app, template=SWAGGER_TEMPLATE)
 
     from app.routes import api_bp
+    from app.routes.general_routes import general_bp
     from app.routes.user_routes import user_bp
 
     app.register_blueprint(api_bp)
+    app.register_blueprint(general_bp)
     app.register_blueprint(user_bp)
-
-    @app.route("/")
-    def index():
-        return redirect("/apidocs")
 
     with app.app_context():
         from app import models  # noqa: F401 — ensure models are registered
