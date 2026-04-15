@@ -1,5 +1,11 @@
+import Hero from "../components/Hero"
+
 function Home() {
-  return <h1>Home</h1>;
+  return (
+    <div className="w-full h-screen bg-background">
+      <Hero/>
+    </div>
+  );
 }
 
 export default Home;

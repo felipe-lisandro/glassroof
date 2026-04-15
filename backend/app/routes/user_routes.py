@@ -83,6 +83,9 @@ def register_person():
       409:
         description: Email ou CPF ja cadastrado
     """
+    if isinstance(request.json["birthday"], str):
+      from datetime import datetime
+      request.json["birthday"] = datetime.strptime(request.json["birthday"], "%Y-%m-%d").date()
     errors = person_schema.validate(request.json)
     if errors:
         return jsonify({"errors": errors}), 400

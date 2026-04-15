@@ -34,8 +34,8 @@ jobs:
 
       - run: pip install -r requirements.txt
 
-      # add backend tests here when ready:
-      # - run: pytest
+      
+      - run: pytest tests/ -v
 
   build-frontend:
     runs-on: ubuntu-latest
