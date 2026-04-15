@@ -1,9 +1,10 @@
 """
 conftest.py — shared fixtures for the entire test suite.
 
-The app is created once per test session using an in-memory SQLite database,
-and each test gets its own transaction that is rolled back at the end, keeping
-tests fully isolated without having to recreate the schema every time.
+The app is created once per session using an in-memory SQLite database.
+After each test, all table rows are deleted so tests never share state.
+This is more reliable than the session.bind / SAVEPOINT trick, which
+only works on SQLAlchemy 1.x.
 """
 
 import pytest
@@ -15,7 +16,6 @@ from app.config import Config
 class TestConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
-    # Disable CSRF / extra overhead that is not relevant for unit tests
     WTF_CSRF_ENABLED = False
 
 
@@ -38,18 +38,12 @@ def client(app):
 @pytest.fixture(autouse=True)
 def clean_db(app):
     """
-    Roll back every DB write after each test so tests never share state.
-    Uses a nested (SAVEPOINT) transaction so the outer connection stays open.
+    Delete all rows from every table after each test.
+    Works with SQLAlchemy 2.x and keeps the schema intact across the session.
     """
+    yield
     with app.app_context():
-        connection = _db.engine.connect()
-        transaction = connection.begin()
-
-        # Bind the session to this connection so all writes go through it
-        _db.session.bind = connection  # type: ignore[assignment]
-
-        yield
-
         _db.session.remove()
-        transaction.rollback()
-        connection.close()
+        for table in reversed(_db.metadata.sorted_tables):
+            _db.session.execute(table.delete())
+        _db.session.commit()

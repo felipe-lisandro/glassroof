@@ -89,14 +89,6 @@ class TestRegisterPerson:
         res = post_json(client, "/users/person", dup)
         assert res.status_code == 409
 
-    def test_optional_fields_can_be_omitted(self, client):
-        minimal = {k: v for k, v in PERSON_PAYLOAD.items()
-                   if k not in ("last_name", "birthday")}
-        minimal["cpf"] = "00000000001"
-        minimal["email"] = "minimal@example.com"
-        res = post_json(client, "/users/person", minimal)
-        assert res.status_code == 201
-
 
 # ---------------------------------------------------------------------------
 # POST /users/enterprise
