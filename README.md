@@ -103,7 +103,11 @@ glassroof-imobiliario/
    ```bash
     npm install
     ```
-3. Inicie a aplicação:
+3. Faça a build da aplicação:
    ```bash
-    npm start
+    npm run build
+    ```
+4. Inicie a aplicação:
+   ```bash
+    npm run dev
     ```
