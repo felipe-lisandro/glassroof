@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 function Properties() {
   const properties = [
     {
@@ -50,9 +52,11 @@ function Properties() {
 
               <p className="font-bold mb-4">{property.price}</p>
 
-              <button className="bg-black text-white px-4 py-2 rounded-lg hover:opacity-90 transition">
-                Ver detalhes
-              </button>
+              <Link to={`/imovel/${property.id}`}>
+                <button className="bg-black text-white px-4 py-2 rounded-lg hover:opacity-90 transition">
+                  Ver detalhes
+                </button>
+              </Link>
             </div>
           ))}
         </div>
