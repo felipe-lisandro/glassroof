@@ -3,6 +3,11 @@ from datetime import date
 from flask import Blueprint, jsonify, request
 from marshmallow import Schema, fields, validate
 
+from app.services.auth_service import (
+    InvalidCredentialsError,
+    authenticate_user,
+    generate_token,
+)
 from app.services.user_service import (
     DuplicateError,
     create_enterprise_user,
@@ -32,11 +37,59 @@ class EnterpriseUserSchema(Schema):
     cnpj = fields.String(required=True, validate=validate.Length(equal=14))
 
 
+class LoginSchema(Schema):
+    email = fields.Email(required=True)
+    password = fields.String(required=True, validate=validate.Length(min=6))
+
+
 person_schema = PersonUserSchema()
 enterprise_schema = EnterpriseUserSchema()
+login_schema = LoginSchema()
 
 
 # --------------- Routes ---------------
+
+@user_bp.route("/login", methods=["POST"])
+def login():
+    """Autentica um usuario e retorna um JWT.
+    ---
+    tags:
+      - Autenticacao
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - email
+            - password
+          properties:
+            email:
+              type: string
+              example: pedro@email.com
+            password:
+              type: string
+              example: "123456"
+    responses:
+      200:
+        description: Login bem-sucedido
+      400:
+        description: Dados invalidos
+      401:
+        description: Email ou senha incorretos
+    """
+    errors = login_schema.validate(request.json)
+    if errors:
+        return jsonify({"errors": errors}), 400
+
+    try:
+        user = authenticate_user(request.json["email"], request.json["password"])
+        token = generate_token(user)
+        return jsonify({"token": token, "user": user.to_dict()}), 200
+    except InvalidCredentialsError as e:
+        return jsonify({"error": str(e)}), 401
+
 
 @user_bp.route("/person", methods=["POST"])
 def register_person():
@@ -83,9 +136,10 @@ def register_person():
       409:
         description: Email ou CPF ja cadastrado
     """
-    if isinstance(request.json["birthday"], str):
-      from datetime import datetime
-      request.json["birthday"] = datetime.strptime(request.json["birthday"], "%Y-%m-%d").date()
+    birthday = request.json.get("birthday")
+    if isinstance(birthday, str):
+        from datetime import datetime
+        request.json["birthday"] = datetime.strptime(birthday, "%Y-%m-%d").date()
     errors = person_schema.validate(request.json)
     if errors:
         return jsonify({"errors": errors}), 400
