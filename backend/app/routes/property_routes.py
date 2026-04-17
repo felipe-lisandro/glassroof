@@ -10,6 +10,8 @@ from app.services.property_service import (
     get_properties_from_enterprise,
 )
 
+from app.services.auth_service import token_required
+
 property_bp = Blueprint("properties", __name__, url_prefix="/properties")
 
 
@@ -54,7 +56,8 @@ create_property_schema = CreatePropertySchema()
 # --------------- Routes ---------------
 
 @property_bp.route("/", methods=["POST"])
-def create_property():
+@token_required
+def create_property(current_user):
     """Cria uma nova propriedade.
     ---
     tags:
@@ -145,6 +148,8 @@ def create_property():
       400:
         description: Dados invalidos
     """
+    if current_user.type != "enterprise":
+        return jsonify({"error": "Apenas usuários do tipo 'enterprise' podem criar propriedades"}), 403
     
     errors = create_property_schema.validate(request.json)
     if errors:
@@ -158,7 +163,7 @@ def create_property():
 
 
 @property_bp.route("/enterprise/<int:enterprise_id>", methods=["GET"])
-def get_properties_from_enterprise(enterprise_id):
+def route_get_properties_from_enterprise(enterprise_id):
     """Obtém todas as propriedades de uma empresa.
     ---
     tags:
@@ -182,7 +187,7 @@ def get_properties_from_enterprise(enterprise_id):
 
 
 @property_bp.route("", methods=["GET"])
-def get_all_properties():
+def route_get_all_properties():
     """Obtém todas as propriedades.
     ---
     tags:
@@ -200,7 +205,7 @@ def get_all_properties():
         return jsonify({"error": str(e)}), 400
     
 @property_bp.route("/<int:property_id>", methods=["GET"])
-def get_property_by_id(property_id):
+def route_get_property_by_id(property_id):
     """Obtém uma propriedade pelo ID.
     ---
     tags:

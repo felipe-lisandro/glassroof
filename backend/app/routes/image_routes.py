@@ -25,7 +25,7 @@ image_schema = ImageSchema()
 # --------------- Routes ---------------
 
 @image_bp.route("/", methods=["POST"])
-def create_image():
+def route_create_image():
     """Cria uma nova imagem.
     ---
     tags:

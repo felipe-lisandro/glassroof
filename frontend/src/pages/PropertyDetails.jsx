@@ -1,63 +1,96 @@
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
+import { getPropertyById } from "../services/propertyService";
 
 function PropertyDetails() {
   const { id } = useParams();
+  const [property, setProperty] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Dados mock (simulação)
-const properties = [
-  {
-    id: "1",
-    title: "Apartamento Centro",
-    city: "São Paulo",
-    state: "SP",
-    description:
-      "Apartamento moderno com excelente localização, próximo ao metrô, com segurança 24h e área de lazer completa.",
-    price: "R$ 2.300/mês",
-  },
-  {
-    id: "2",
-    title: "Casa na Praia",
-    city: "Santos",
-    state: "SP",
-    description:
-      "Casa ampla com vista para o mar, garagem coberta e espaço gourmet.",
-    price: "R$ 3.500/mês",
-  },
-  {
-    id: "3",
-    title: "Studio Universitário",
-    city: "Campinas",
-    state: "SP",
-    description:
-      "Studio compacto, ideal para estudantes e perto da faculdade.",
-    price: "R$ 1.400/mês",
-  },
-];
+  useEffect(() => {
+    
+      if (!id || isNaN(Number(id))) {
+      setError("ID de imóvel inválido.");
+      setLoading(false);
+      return;
+    }
 
-  const property = properties.find((p) => p.id === id);
+    async function loadProperty() {
+      try {
+        setLoading(true);
 
-  if (!property) {
-    return <h1 className="p-10">Imóvel não encontrado</h1>;
+        const propertyId = Number(id);
+        const data = await getPropertyById(propertyId);
+        
+        setProperty(data);
+        setError(null);
+      } catch (err) {
+
+        setError("Imóvel não encontrado em nossa base de dados.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadProperty();
+  }, [id]);
+
+  if (loading) return <div className="text-center pt-40">Carregando detalhes...</div>;
+  
+  if (error || !property) {
+    return (
+      <div className="text-center pt-40">
+        <p className="text-red-500 mb-4">{error || "Imóvel não encontrado"}</p>
+        <Link to="/imoveis" className="text-blue-600 underline">Voltar para a listagem</Link>
+      </div>
+    );
   }
 
   return (
-    <main className="min-h-screen bg-gray-100 px-6 pt-28 pb-10">
-      <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-md p-8">
-        <h1 className="text-3xl font-bold mb-2">{property.title}</h1>
+    <main className="min-h-screen bg-gray-50 px-6 pt-28 pb-10">
+      <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg overflow-hidden">
+        
+        {property.images && property.images.length > 0 && (
+          <img 
+            src={property.images[0].URL} 
+            alt={property.name} 
+            className="w-full h-96 object-cover"
+          />
+        )}
 
-        <p className="text-gray-500 mb-4">
-          {property.city} - {property.state}
-        </p>
+        <div className="p-8">
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <h1 className="text-4xl font-bold text-gray-900 mb-2">{property.name}</h1>
+              <p className="text-xl text-gray-500">
+                {property.location?.street}, {property.location?.number} — {property.location?.city}, {property.location?.state}
+              </p>
+            </div>
+            <p className="text-3xl font-bold text-black">
+              R$ {Number(property.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            </p>
+          </div>
 
-        <p className="text-lg font-semibold mb-4">{property.price}</p>
+          <hr className="my-6" />
 
-        <p className="text-gray-700 mb-6">{property.description}</p>
+          <h2 className="text-2xl font-semibold mb-4">Descrição</h2>
+          <p className="text-gray-700 leading-relaxed mb-8 text-lg">
+            {property.description}
+          </p>
 
-        <Link to="/imoveis">
-          <button className="bg-black text-white px-5 py-2 rounded-lg hover:opacity-90 transition">
-            Voltar
-          </button>
-        </Link>
+          <div className="flex gap-4">
+            <Link to="/imoveis">
+              <button className="border border-black text-black px-6 py-2 rounded-lg hover:bg-gray-100 transition">
+                Voltar
+              </button>
+            </Link>
+            
+            <button className="bg-black text-white px-6 py-2 rounded-lg hover:opacity-90 transition">
+              Avaliar Imóvel
+            </button>
+          </div>
+        </div>
       </div>
     </main>
   );
