@@ -35,3 +35,6 @@ frontend/build/
 
 # Logs
 *.log
+
+# Local dev scripts
+dev.sh
