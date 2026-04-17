@@ -10,6 +10,8 @@ from app.services.property_service import (
     get_properties_from_enterprise,
 )
 
+from app.services.auth_service import token_required
+
 property_bp = Blueprint("properties", __name__, url_prefix="/properties")
 
 
@@ -54,7 +56,8 @@ create_property_schema = CreatePropertySchema()
 # --------------- Routes ---------------
 
 @property_bp.route("/", methods=["POST"])
-def create_property():
+@token_required
+def create_property(current_user):
     """Cria uma nova propriedade.
     ---
     tags:
@@ -145,6 +148,8 @@ def create_property():
       400:
         description: Dados invalidos
     """
+    if current_user.type != "enterprise":
+        return jsonify({"error": "Apenas usuários do tipo 'enterprise' podem criar propriedades"}), 403
     
     errors = create_property_schema.validate(request.json)
     if errors:
