@@ -1,6 +1,7 @@
-import { Link } from "react-router-dom";
+import { PropertyCard } from "../components/PropertyCard";
 
 function Properties() {
+  // Esse array será substituído pela chamada da API Flask em breve
   const properties = [
     {
       id: 1,
@@ -29,37 +30,26 @@ function Properties() {
   ];
 
   return (
-    <main className="min-h-screen bg-gray-100 px-6 pt-28 pb-10">
+    <main className="min-h-screen bg-gray-50 px-6 pt-28 pb-10">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold mb-2">Imóveis Disponíveis</h1>
-        <p className="text-gray-600 mb-8">
-          Explore os imóveis cadastrados na plataforma.
-        </p>
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Imóveis Disponíveis</h1>
+          <p className="text-gray-600">
+            Explore os imóveis cadastrados na plataforma Glassroof.
+          </p>
+        </header>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {properties.map((property) => (
-            <div
-              key={property.id}
-              className="bg-white rounded-2xl shadow-md p-6 border border-gray-200"
-            >
-              <h2 className="text-xl font-semibold mb-2">{property.title}</h2>
-
-              <p className="text-gray-500 mb-2">
-                {property.city} - {property.state}
-              </p>
-
-              <p className="text-gray-700 mb-3">{property.description}</p>
-
-              <p className="font-bold mb-4">{property.price}</p>
-
-              <Link to={`/imovel/${property.id}`}>
-                <button className="bg-black text-white px-4 py-2 rounded-lg hover:opacity-90 transition">
-                  Ver detalhes
-                </button>
-              </Link>
-            </div>
+            <PropertyCard key={property.id} {...property} />
           ))}
         </div>
+
+        {properties.length === 0 && (
+          <div className="text-center py-20">
+            <p className="text-gray-500">Nenhum imóvel encontrado no momento.</p>
+          </div>
+        )}
       </div>
     </main>
   );
