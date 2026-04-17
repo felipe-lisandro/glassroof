@@ -22,4 +22,25 @@ export async function loginUser(email, password) {
   return json;
 }
 
+export async function getProperties() {
+  const res = await fetch(`${API_URL}/properties`);
+  const json = await res.json();
+  if (!res.ok) throw json;
+  return json;
+}
+
+export async function createProperty(data, token) {
+  const res = await fetch(`${API_URL}/properties/`, {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+    },
+    body: JSON.stringify(data),
+  });
+  const json = await res.json();
+  if (!res.ok) throw json;
+  return json;
+}
+
 export default API_URL;
