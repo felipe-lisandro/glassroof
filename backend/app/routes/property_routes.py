@@ -4,7 +4,7 @@ from flask import Blueprint, jsonify, request
 from marshmallow import Schema, fields, validate
 
 from app.services.property_service import (
-    create_property,
+    create_property as create_property_service,
     get_all_properties,
     get_property_by_id,
     get_properties_from_enterprise,
@@ -151,7 +151,7 @@ def create_property():
         return jsonify({"errors": errors}), 400
 
     try:
-        property = create_property(request.json)
+        property = create_property_service(request.json)
         return jsonify(property), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 400

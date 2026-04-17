@@ -1,6 +1,5 @@
 from app import db
 from app.models.location import Location
-from backend.app.models.image import Image
 
 def create_location(data: dict) -> dict:
     location = Location(
