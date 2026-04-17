@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../contexts/AuthContext"; // Para pegar o enterprise_id automaticamente
-import { createProperty } from "../services/api";
+import { createProperty } from "../services/propertyService";
 
 function CreateProperty() {
   const { token, user } = useAuth(); // Puxa os dados do usuário logado

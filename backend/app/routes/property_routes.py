@@ -163,7 +163,7 @@ def create_property(current_user):
 
 
 @property_bp.route("/enterprise/<int:enterprise_id>", methods=["GET"])
-def get_properties_from_enterprise(enterprise_id):
+def route_get_properties_from_enterprise(enterprise_id):
     """Obtém todas as propriedades de uma empresa.
     ---
     tags:
@@ -187,7 +187,7 @@ def get_properties_from_enterprise(enterprise_id):
 
 
 @property_bp.route("", methods=["GET"])
-def get_all_properties():
+def route_get_all_properties():
     """Obtém todas as propriedades.
     ---
     tags:
@@ -205,7 +205,7 @@ def get_all_properties():
         return jsonify({"error": str(e)}), 400
     
 @property_bp.route("/<int:property_id>", methods=["GET"])
-def get_property_by_id(property_id):
+def route_get_property_by_id(property_id):
     """Obtém uma propriedade pelo ID.
     ---
     tags:
