@@ -16,6 +16,7 @@ class Property(db.Model):
     location = db.relationship("Location", backref="property", uselist=False)
     images = db.relationship("Image", backref="property", uselist=True)
     categories = db.relationship("Category", backref="property", uselist=True)
+    evaluations = db.relationship("Avaliation", backref="property", uselist=True)
 
     enterprise_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     
