@@ -9,6 +9,10 @@ from app.services.property_service import (
     get_property_by_id,
     get_properties_from_enterprise,
 )
+from app.services.avaliation_service import (
+    create_avaliation as create_avaliation_service,
+    list_avaliations as list_avaliations_service,
+)
 
 from app.services.auth_service import token_required
 
@@ -50,7 +54,14 @@ class CreatePropertySchema(Schema):
     images = fields.List(fields.Nested(ImageSchema), required=True)
 
 
+class CreateAvaliationSchema(Schema):
+    comment = fields.String(required=True, validate=validate.Length(min=1, max=500))
+    stars = fields.Integer(required=True, validate=validate.Range(min=0, max=5))
+    photos = fields.List(fields.String(validate=validate.Length(min=1, max=400)), load_default=[])
+
+
 create_property_schema = CreatePropertySchema()
+create_avaliation_schema = CreateAvaliationSchema()
 
 
 # --------------- Routes ---------------
@@ -203,6 +214,92 @@ def route_get_all_properties():
         return jsonify(properties), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
+
+@property_bp.route("/<int:property_id>/avaliations", methods=["POST"])
+def route_create_avaliation(property_id):
+    """Cria uma avaliação para um imóvel.
+    ---
+    tags:
+      - Avaliações
+    parameters:
+      - in: path
+        name: property_id
+        type: integer
+        required: true
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - comment
+            - stars
+          properties:
+            comment:
+              type: string
+              example: Imóvel excelente.
+            stars:
+              type: integer
+              minimum: 0
+              maximum: 5
+              example: 5
+            photos:
+              type: array
+              items:
+                type: string
+              example: ["https://example.com/photo1.jpg"]
+    responses:
+      201:
+        description: Avaliação criada com sucesso
+      400:
+        description: Dados inválidos
+      404:
+        description: Imóvel não encontrado
+    """
+    errors = create_avaliation_schema.validate(request.json or {})
+    if errors:
+        return jsonify({"errors": errors}), 400
+
+    try:
+        avaliation = create_avaliation_service(property_id, request.json or {})
+        return jsonify(avaliation), 201
+    except ValueError as exc:
+        if str(exc) == "Property not found":
+            return jsonify({"error": str(exc)}), 404
+        return jsonify({"error": str(exc)}), 400
+
+
+@property_bp.route("/<int:property_id>/avaliations", methods=["GET"])
+def route_list_avaliations(property_id):
+    """Lista avaliações de um imóvel, com opcional filtro por estrelas.
+    ---
+    tags:
+      - Avaliações
+    parameters:
+      - in: path
+        name: property_id
+        type: integer
+        required: true
+      - in: query
+        name: stars
+        type: integer
+        required: false
+    responses:
+      200:
+        description: Lista de avaliações
+      400:
+        description: Filtro inválido
+      404:
+        description: Imóvel não encontrado
+    """
+    try:
+        avaliations = list_avaliations_service(property_id, request.args.get("stars"))
+        return jsonify(avaliations), 200
+    except ValueError as exc:
+        if str(exc) == "Property not found":
+            return jsonify({"error": str(exc)}), 404
+        return jsonify({"error": str(exc)}), 400
     
 @property_bp.route("/<int:property_id>", methods=["GET"])
 def route_get_property_by_id(property_id):
