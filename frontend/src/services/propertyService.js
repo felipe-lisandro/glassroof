@@ -15,6 +15,33 @@ export async function getPropertyById(id) {
   return json;
 }
 
+export async function getPropertyAvaliations(id) {
+  const res = await fetch(`${API_URL}/properties/${id}/avaliations`);
+  const json = await res.json();
+  if (!res.ok) throw json;
+  return json;
+}
+
+export async function getAvaliationCategories() {
+  const res = await fetch(`${API_URL}/properties/categories`);
+  const json = await res.json();
+  if (!res.ok) throw json;
+  return json;
+}
+
+export async function createPropertyAvaliation(propertyId, data) {
+  const res = await fetch(`${API_URL}/properties/${propertyId}/avaliations`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+  const json = await res.json();
+  if (!res.ok) throw json;
+  return json;
+}
+
 export async function createProperty(data, token) {
   const res = await fetch(`${API_URL}/properties/`, {
     method: "POST",

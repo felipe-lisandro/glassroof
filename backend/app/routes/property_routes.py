@@ -13,6 +13,7 @@ from app.services.avaliation_service import (
     create_avaliation as create_avaliation_service,
     list_avaliations as list_avaliations_service,
 )
+from app.services.catergory_service import list_categories as list_categories_service
 
 from app.services.auth_service import token_required
 
@@ -55,6 +56,7 @@ class CreatePropertySchema(Schema):
 
 
 class CreateAvaliationSchema(Schema):
+    category_id = fields.Integer(required=True)
     comment = fields.String(required=True, validate=validate.Length(min=1, max=500))
     stars = fields.Integer(required=True, validate=validate.Range(min=0, max=5))
     photos = fields.List(fields.String(validate=validate.Length(min=1, max=400)), load_default=[])
@@ -216,6 +218,25 @@ def route_get_all_properties():
         return jsonify({"error": str(e)}), 400
 
 
+@property_bp.route("/categories", methods=["GET"])
+def route_list_categories():
+    """Lista categorias globais de avaliação.
+    ---
+    tags:
+      - Categorias
+    responses:
+      200:
+        description: Lista de categorias
+      400:
+        description: Erro
+    """
+    try:
+        categories = list_categories_service()
+        return jsonify(categories), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
 @property_bp.route("/<int:property_id>/avaliations", methods=["POST"])
 def route_create_avaliation(property_id):
     """Cria uma avaliação para um imóvel.
@@ -233,9 +254,13 @@ def route_create_avaliation(property_id):
         schema:
           type: object
           required:
+            - category_id
             - comment
             - stars
           properties:
+            category_id:
+              type: integer
+              example: 1
             comment:
               type: string
               example: Imóvel excelente.
@@ -265,7 +290,7 @@ def route_create_avaliation(property_id):
         avaliation = create_avaliation_service(property_id, request.json or {})
         return jsonify(avaliation), 201
     except ValueError as exc:
-        if str(exc) == "Property not found":
+        if str(exc) in {"Property not found", "Category not found"}:
             return jsonify({"error": str(exc)}), 404
         return jsonify({"error": str(exc)}), 400
 
