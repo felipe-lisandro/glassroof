@@ -1,23 +1,8 @@
 from app import db
 from app.models.avaliation import Avaliation
 from app.models.category import Category
-from app.models.property import Property
-from app.models.user import User
+from app.services.avaliation_validation import AvaliationValidationFactory
 from app.exceptions import BadRequest, NotFound, Forbidden
-
-
-def _get_valid_person_user(user_id: int) -> User:
-    try:
-        user_id = int(user_id)
-    except (TypeError, ValueError) as exc:
-        raise BadRequest("user_id must be an integer") from exc
-
-    user_obj = db.session.get(User, user_id)
-    if not user_obj:
-        raise NotFound("User not found")
-    if user_obj.type != "person":
-        raise Forbidden("Only person users can create avaliations")
-    return user_obj
 
 
 def _assert_user_never_reviewed_property(property_id: int, user_id: int) -> None:
@@ -26,72 +11,19 @@ def _assert_user_never_reviewed_property(property_id: int, user_id: int) -> None
         raise BadRequest("User already reviewed this property")
 
 
-def _get_property_or_404(property_id: int) -> Property:
-    property_obj = db.session.get(Property, property_id)
-    if not property_obj:
-        raise NotFound("Property not found")
-    return property_obj
-
-
-def _validate_comment(value: str) -> str:
-    comment = (value or "").strip()
-    if not comment:
-        raise BadRequest("comment is required")
-    return comment
-
-
-def _validate_stars(value) -> int:
-    try:
-        stars = int(value)
-    except (TypeError, ValueError) as exc:
-        raise BadRequest("stars must be an integer between 0 and 5") from exc
-
-    if not 0 <= stars <= 5:
-        raise BadRequest("stars must be between 0 and 5")
-    return stars
-
-
-def _validate_photos(value):
-    photos = value
-    if photos is not None and not isinstance(photos, list):
-        raise BadRequest("photos must be a list of URLs")
-    return photos
-
-
 def create_avaliation(property_id: int, data: dict) -> dict:
-    _get_property_or_404(property_id)
+    validated = AvaliationValidationFactory.get_validator("create").validate(property_id, data)
 
-    comment = _validate_comment(data.get("comment"))
-    stars = _validate_stars(data.get("stars"))
-    photos = _validate_photos(data.get("photos"))
-
-    user_id = data.get("user_id")
-    if user_id is None:
-        raise BadRequest("user_id is required")
-
-    user_obj = _get_valid_person_user(user_id)
+    user_obj = validated["user"]
     _assert_user_never_reviewed_property(property_id, user_obj.id)
-
-    category_id = data.get("category_id")
-    if category_id is None:
-        raise BadRequest("category_id is required")
-
-    try:
-        category_id = int(category_id)
-    except (TypeError, ValueError) as exc:
-        raise BadRequest("category_id must be an integer") from exc
-
-    category_obj = db.session.get(Category, category_id)
-    if not category_obj:
-        raise NotFound("Category not found")
 
     avaliation = Avaliation(
         property_id=property_id,
         user_id=user_obj.id,
-        category_id=category_id,
-        comment=comment,
-        stars=stars,
-        photos=photos,
+        category_id=validated["category"].id,
+        comment=validated["comment"],
+        stars=validated["stars"],
+        photos=validated["photos"],
     )
 
     db.session.add(avaliation)
@@ -100,51 +32,20 @@ def create_avaliation(property_id: int, data: dict) -> dict:
 
 
 def create_avaliations_bulk(property_id: int, data: dict) -> list[dict]:
-    _get_property_or_404(property_id)
+    validated = AvaliationValidationFactory.get_validator("bulk").validate(property_id, data)
 
-    user_id = data.get("user_id")
-    if user_id is None:
-        raise BadRequest("user_id is required")
-
-    user_obj = _get_valid_person_user(user_id)
+    user_obj = validated["user"]
     _assert_user_never_reviewed_property(property_id, user_obj.id)
 
-    items = data.get("avaliations")
-    if not isinstance(items, list) or len(items) == 0:
-        raise BadRequest("avaliations must be a non-empty list")
-
-    seen_categories = set()
     created: list[Avaliation] = []
-
-    for item in items:
-        category_id = item.get("category_id")
-        if category_id is None:
-            raise BadRequest("category_id is required")
-
-        try:
-            category_id = int(category_id)
-        except (TypeError, ValueError) as exc:
-            raise BadRequest("category_id must be an integer") from exc
-
-        if category_id in seen_categories:
-            raise BadRequest("category_id must be unique in avaliations list")
-        seen_categories.add(category_id)
-
-        category_obj = db.session.get(Category, category_id)
-        if not category_obj:
-            raise NotFound("Category not found")
-
-        comment = _validate_comment(item.get("comment"))
-        stars = _validate_stars(item.get("stars"))
-        photos = _validate_photos(item.get("photos", []))
-
+    for item in validated["avaliations"]:
         avaliation = Avaliation(
             property_id=property_id,
             user_id=user_obj.id,
-            category_id=category_id,
-            comment=comment,
-            stars=stars,
-            photos=photos,
+            category_id=item["category"].id,
+            comment=item["comment"],
+            stars=item["stars"],
+            photos=item["photos"],
         )
         created.append(avaliation)
         db.session.add(avaliation)
@@ -154,7 +55,7 @@ def create_avaliations_bulk(property_id: int, data: dict) -> list[dict]:
 
 
 def list_avaliations(property_id: int, stars: int | None = None) -> list[dict]:
-    _get_property_or_404(property_id)
+    validated = AvaliationValidationFactory.get_validator("list").validate(property_id, stars)
 
     query = (
         db.session.query(Avaliation, Category.name.label("category_name"))
@@ -162,9 +63,8 @@ def list_avaliations(property_id: int, stars: int | None = None) -> list[dict]:
         .filter(Avaliation.property_id == property_id)
     )
 
-    if stars is not None:
-        stars_filter = _validate_stars(stars)
-        query = query.filter(Avaliation.stars == stars_filter)
+    if validated["stars"] is not None:
+        query = query.filter(Avaliation.stars == validated["stars"])
 
     rows = query.order_by(Avaliation.created_at.desc()).all()
     result = []
@@ -183,17 +83,12 @@ def update_avaliation(property_id: int, avaliation_id: int, user_id: int, data: 
     if avaliation.user_id != user_id:
         raise Forbidden("You can only update your own avaliation")
 
-    comment = data.get("comment")
-    comment = _validate_comment(comment)
-    stars = _validate_stars(data.get("stars"))
+    validated = AvaliationValidationFactory.get_validator("update").validate(data)
 
-    avaliation.comment = comment
-    avaliation.stars = stars
-
-    if "photos" in data:
-        photos = data.get("photos")
-        photos = _validate_photos(photos)
-        avaliation.photos = photos
+    avaliation.comment = validated["comment"]
+    avaliation.stars = validated["stars"]
+    if "photos" in validated:
+        avaliation.photos = validated["photos"]
 
     db.session.commit()
     return avaliation.to_dict()
