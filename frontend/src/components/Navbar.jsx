@@ -81,6 +81,14 @@ export default function Navbar() {
                   </Link>
                 )}
 
+                <Link
+                  to="/minhas-visitas"
+                  onClick={() => setIsOpen(false)}
+                  className="block px-4 py-2 text-sm text-blue-300 hover:bg-zinc-800 transition-colors"
+                >
+                  Minhas Visitas
+                </Link>
+
                 <button
                   onClick={handleLogout}
                   className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-zinc-800 transition-colors"
