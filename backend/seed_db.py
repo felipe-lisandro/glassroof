@@ -258,7 +258,11 @@ def create_categories() -> dict[str, Category]:
     return {item.name: item for item in categories}
 
 
-def create_avaliations(properties: list[Property], categories_by_name: dict[str, Category]) -> None:
+def create_avaliations(
+    properties: list[Property],
+    categories_by_name: dict[str, Category],
+    people: list[PersonUser],
+) -> None:
     comments = {
         0: [
             ("Vizinhanca", "Rua silenciosa e com boa iluminacao publica.", 5),
@@ -284,11 +288,13 @@ def create_avaliations(properties: list[Property], categories_by_name: dict[str,
 
     avaliations: list[Avaliation] = []
     for index, prop in enumerate(properties):
+        user = people[index % len(people)]
         for position, (category_name, comment, stars) in enumerate(comments[index]):
             category = categories_by_name[category_name]
             avaliations.append(
                 Avaliation(
                     property_id=prop.id,
+                    user_id=user.id,
                     category_id=category.id,
                     comment=comment,
                     stars=stars,
@@ -347,7 +353,7 @@ def seed() -> None:
         create_locations(properties)
         create_images(properties)
         categories_by_name = create_categories()
-        create_avaliations(properties, categories_by_name)
+        create_avaliations(properties, categories_by_name, people)
         create_visits(properties, people)
 
         print("Seed concluido com sucesso.")
@@ -355,7 +361,7 @@ def seed() -> None:
         print("- 4 imoveis cadastrados")
         print("- 4 localizacoes e 4 imagens")
         print("- 5 categorias globais cadastradas")
-        print("- 12 avaliacoes (3 por imovel, com category_id)")
+        print("- 12 avaliacoes (3 por imovel, com category_id e user_id)")
         print("- 4 visitas cadastradas")
 
 

@@ -1,13 +1,23 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { getPropertyById, getPropertyAvaliations } from "../services/propertyService";
+import {
+  deletePropertyAvaliation,
+  getPropertyAvaliations,
+  getPropertyById,
+  updatePropertyAvaliation,
+} from "../services/propertyService";
+import { useAuth } from "../contexts/AuthContext";
 
 function PropertyDetails() {
   const { id } = useParams();
+  const { user, token } = useAuth();
   const [property, setProperty] = useState(null);
   const [avaliations, setAvaliations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [actionError, setActionError] = useState(null);
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm] = useState({ comment: "", stars: "" });
 
   useEffect(() => {
     
@@ -46,8 +56,20 @@ function PropertyDetails() {
       ? (avaliations.reduce((sum, item) => sum + Number(item.stars || 0), 0) / avaliations.length).toFixed(1)
       : null;
 
+  const sortedAvaliations = [...avaliations].sort((a, b) => {
+    const isAFromCurrentUser = a.user_id === user?.id;
+    const isBFromCurrentUser = b.user_id === user?.id;
+
+    if (isAFromCurrentUser && !isBFromCurrentUser) return -1;
+    if (!isAFromCurrentUser && isBFromCurrentUser) return 1;
+
+    const dateA = new Date(a.created_at || 0).getTime();
+    const dateB = new Date(b.created_at || 0).getTime();
+    return dateB - dateA;
+  });
+
   const avaliationsByCategory = Object.entries(
-    avaliations.reduce((acc, item) => {
+    sortedAvaliations.reduce((acc, item) => {
       const categoryName = item.category_name || "Sem categoria";
       if (!acc[categoryName]) {
         acc[categoryName] = [];
@@ -82,6 +104,72 @@ function PropertyDetails() {
         </span>
       </span>
     );
+  }
+
+  function startEditing(item) {
+    setActionError(null);
+    setEditingId(item.id);
+    setEditForm({
+      comment: item.comment || "",
+      stars: String(Number(item.stars || 0)),
+    });
+  }
+
+  function cancelEditing() {
+    setEditingId(null);
+    setEditForm({ comment: "", stars: "" });
+  }
+
+  async function handleSaveEdit(item) {
+    if (!token) {
+      setActionError("Você precisa estar logado para editar avaliações.");
+      return;
+    }
+
+    const stars = Number(editForm.stars);
+    if (!editForm.comment.trim() || Number.isNaN(stars) || stars < 0 || stars > 5) {
+      setActionError("Informe comentário e nota válida de 0 a 5.");
+      return;
+    }
+
+    try {
+      setActionError(null);
+      const updated = await updatePropertyAvaliation(
+        property.id,
+        item.id,
+        {
+          comment: editForm.comment.trim(),
+          stars,
+          photos: item.photos || [],
+        },
+        token
+      );
+
+      setAvaliations((previous) =>
+        previous.map((current) => (current.id === item.id ? { ...current, ...updated } : current))
+      );
+      cancelEditing();
+    } catch (err) {
+      setActionError(err?.error || "Falha ao atualizar avaliação.");
+    }
+  }
+
+  async function handleDelete(item) {
+    if (!token) {
+      setActionError("Você precisa estar logado para excluir avaliações.");
+      return;
+    }
+
+    try {
+      setActionError(null);
+      await deletePropertyAvaliation(property.id, item.id, token);
+      setAvaliations((previous) => previous.filter((current) => current.id !== item.id));
+      if (editingId === item.id) {
+        cancelEditing();
+      }
+    } catch (err) {
+      setActionError(err?.error || "Falha ao excluir avaliação.");
+    }
   }
 
   if (loading) return <div className="text-center pt-40">Carregando detalhes...</div>;
@@ -140,6 +228,7 @@ function PropertyDetails() {
 
           <div className="mb-8">
             <h2 className="text-2xl font-semibold mb-4">Avaliações</h2>
+            {actionError && <p className="text-red-500 mb-3">{actionError}</p>}
             <div className="flex items-center gap-3 mb-4">
               <span className="text-base text-gray-500">Nota final:</span>
               <span className="text-2xl font-bold text-black">
@@ -176,7 +265,76 @@ function PropertyDetails() {
                               <span className="text-sm text-gray-600">{Number(item.stars || 0)}/5</span>
                             </div>
                           </div>
-                          <p className="text-gray-700">{item.comment}</p>
+
+                          {editingId === item.id ? (
+                            <div className="space-y-3">
+                              <div>
+                                <label className="text-sm text-gray-700">Nota (0 a 5)</label>
+                                <select
+                                  className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2"
+                                  value={editForm.stars}
+                                  onChange={(event) =>
+                                    setEditForm((prev) => ({ ...prev, stars: event.target.value }))
+                                  }
+                                >
+                                  {[0, 1, 2, 3, 4, 5].map((value) => (
+                                    <option key={value} value={value}>
+                                      {value}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div>
+                                <label className="text-sm text-gray-700">Comentário</label>
+                                <textarea
+                                  className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 min-h-24"
+                                  value={editForm.comment}
+                                  onChange={(event) =>
+                                    setEditForm((prev) => ({ ...prev, comment: event.target.value }))
+                                  }
+                                  maxLength={500}
+                                />
+                              </div>
+                              <div className="flex gap-2">
+                                <button
+                                  className="bg-black text-white px-4 py-2 rounded-lg hover:opacity-90 transition"
+                                  onClick={() => handleSaveEdit(item)}
+                                  type="button"
+                                >
+                                  Salvar
+                                </button>
+                                <button
+                                  className="border border-black text-black px-4 py-2 rounded-lg hover:bg-gray-100 transition"
+                                  onClick={cancelEditing}
+                                  type="button"
+                                >
+                                  Cancelar
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <p className="text-gray-700">{item.comment}</p>
+                              {user?.id === item.user_id && (
+                                <div className="mt-3 flex gap-2">
+                                  <button
+                                    className="text-sm border border-black text-black px-3 py-1 rounded hover:bg-gray-100 transition"
+                                    onClick={() => startEditing(item)}
+                                    type="button"
+                                  >
+                                    Editar
+                                  </button>
+                                  <button
+                                    className="text-sm border border-red-600 text-red-600 px-3 py-1 rounded hover:bg-red-50 transition"
+                                    onClick={() => handleDelete(item)}
+                                    type="button"
+                                  >
+                                    Excluir
+                                  </button>
+                                </div>
+                              )}
+                            </>
+                          )}
                         </div>
                       ))}
                     </div>

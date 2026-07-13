@@ -42,6 +42,46 @@ export async function createPropertyAvaliation(propertyId, data) {
   return json;
 }
 
+export async function createPropertyAvaliationsBulk(propertyId, data) {
+  const res = await fetch(`${API_URL}/properties/${propertyId}/avaliations/bulk`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+  const json = await res.json();
+  if (!res.ok) throw json;
+  return json;
+}
+
+export async function updatePropertyAvaliation(propertyId, avaliationId, data, token) {
+  const res = await fetch(`${API_URL}/properties/${propertyId}/avaliations/${avaliationId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (res.status === 204) return null;
+  const json = await res.json();
+  if (!res.ok) throw json;
+  return json;
+}
+
+export async function deletePropertyAvaliation(propertyId, avaliationId, token) {
+  const res = await fetch(`${API_URL}/properties/${propertyId}/avaliations/${avaliationId}`, {
+    method: "DELETE",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+    },
+  });
+  if (res.status === 204) return;
+  const json = await res.json();
+  if (!res.ok) throw json;
+}
+
 export async function createProperty(data, token) {
   const res = await fetch(`${API_URL}/properties/`, {
     method: "POST",

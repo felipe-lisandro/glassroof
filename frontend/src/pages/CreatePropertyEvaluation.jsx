@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
-  createPropertyAvaliation,
+  createPropertyAvaliationsBulk,
   getAvaliationCategories,
+  getPropertyAvaliations,
   getPropertyById,
 } from "../services/propertyService";
+import { useAuth } from "../contexts/AuthContext";
 
 function CreatePropertyEvaluation() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
 
   const [property, setProperty] = useState(null);
   const [categories, setCategories] = useState([]);
@@ -28,10 +31,21 @@ function CreatePropertyEvaluation() {
       try {
         setLoading(true);
         const propertyId = Number(id);
-        const [propertyData, categoriesData] = await Promise.all([
+        const [propertyData, categoriesData, avaliationsData] = await Promise.all([
           getPropertyById(propertyId),
           getAvaliationCategories(),
+          getPropertyAvaliations(propertyId),
         ]);
+
+        const alreadyReviewed = (Array.isArray(avaliationsData) ? avaliationsData : []).some(
+          (item) => item.user_id === user?.id
+        );
+        if (alreadyReviewed) {
+          setError("Você já avaliou este imóvel e não pode criar nova avaliação.");
+          setProperty(propertyData);
+          setCategories([]);
+          return;
+        }
 
         const normalizedCategories = Array.isArray(categoriesData) ? categoriesData : [];
         const initialForm = {};
@@ -77,6 +91,11 @@ function CreatePropertyEvaluation() {
       return;
     }
 
+    if (!isAuthenticated || !user?.id) {
+      setError("Você precisa estar logado para enviar avaliações.");
+      return;
+    }
+
     if (hasInvalidCategories()) {
       setError("Você precisa informar nota e comentário para todas as categorias.");
       return;
@@ -86,17 +105,18 @@ function CreatePropertyEvaluation() {
       setSubmitting(true);
       setError(null);
 
-      await Promise.all(
-        categories.map((category) => {
+      await createPropertyAvaliationsBulk(property.id, {
+        user_id: user.id,
+        avaliations: categories.map((category) => {
           const item = formByCategory[category.id];
-          return createPropertyAvaliation(property.id, {
+          return {
             category_id: category.id,
             stars: Number(item.stars),
             comment: item.comment.trim(),
             photos: [],
-          });
-        })
-      );
+          };
+        }),
+      });
 
       navigate(`/imovel/${property.id}`);
     } catch (err) {
