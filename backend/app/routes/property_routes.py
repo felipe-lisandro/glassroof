@@ -12,7 +12,11 @@ from app.services.property_service import (
 from app.services.avaliation_service import (
     create_avaliation as create_avaliation_service,
     list_avaliations as list_avaliations_service,
+  update_avaliation as update_avaliation_service,
+  delete_avaliation as delete_avaliation_service,
+      create_avaliations_bulk as create_avaliations_bulk_service,
 )
+from app.services.catergory_service import list_categories as list_categories_service
 
 from app.services.auth_service import token_required
 
@@ -55,6 +59,24 @@ class CreatePropertySchema(Schema):
 
 
 class CreateAvaliationSchema(Schema):
+    user_id = fields.Integer(required=True)
+    category_id = fields.Integer(required=True)
+    comment = fields.String(required=True, validate=validate.Length(min=1, max=500))
+    stars = fields.Integer(required=True, validate=validate.Range(min=0, max=5))
+    photos = fields.List(fields.String(validate=validate.Length(min=1, max=400)), load_default=[])
+
+class BulkAvaliationItemSchema(Schema):
+    category_id = fields.Integer(required=True)
+    comment = fields.String(required=True, validate=validate.Length(min=1, max=500))
+    stars = fields.Integer(required=True, validate=validate.Range(min=0, max=5))
+    photos = fields.List(fields.String(validate=validate.Length(min=1, max=400)), load_default=[])
+
+class BulkCreateAvaliationSchema(Schema):
+    user_id = fields.Integer(required=True)
+    avaliations = fields.List(fields.Nested(BulkAvaliationItemSchema), required=True, validate=validate.Length(min=1))
+
+
+class UpdateAvaliationSchema(Schema):
     comment = fields.String(required=True, validate=validate.Length(min=1, max=500))
     stars = fields.Integer(required=True, validate=validate.Range(min=0, max=5))
     photos = fields.List(fields.String(validate=validate.Length(min=1, max=400)), load_default=[])
@@ -62,6 +84,8 @@ class CreateAvaliationSchema(Schema):
 
 create_property_schema = CreatePropertySchema()
 create_avaliation_schema = CreateAvaliationSchema()
+bulk_create_avaliation_schema = BulkCreateAvaliationSchema()
+update_avaliation_schema = UpdateAvaliationSchema()
 
 
 # --------------- Routes ---------------
@@ -216,6 +240,25 @@ def route_get_all_properties():
         return jsonify({"error": str(e)}), 400
 
 
+@property_bp.route("/categories", methods=["GET"])
+def route_list_categories():
+    """Lista categorias globais de avaliação.
+    ---
+    tags:
+      - Categorias
+    responses:
+      200:
+        description: Lista de categorias
+      400:
+        description: Erro
+    """
+    try:
+        categories = list_categories_service()
+        return jsonify(categories), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
 @property_bp.route("/<int:property_id>/avaliations", methods=["POST"])
 def route_create_avaliation(property_id):
     """Cria uma avaliação para um imóvel.
@@ -233,9 +276,17 @@ def route_create_avaliation(property_id):
         schema:
           type: object
           required:
+            - user_id
+            - category_id
             - comment
             - stars
           properties:
+            user_id:
+              type: integer
+              example: 2
+            category_id:
+              type: integer
+              example: 1
             comment:
               type: string
               example: Imóvel excelente.
@@ -265,7 +316,33 @@ def route_create_avaliation(property_id):
         avaliation = create_avaliation_service(property_id, request.json or {})
         return jsonify(avaliation), 201
     except ValueError as exc:
-        if str(exc) == "Property not found":
+        if str(exc) in {"Property not found", "Category not found", "User not found"}:
+            return jsonify({"error": str(exc)}), 404
+        return jsonify({"error": str(exc)}), 400
+
+@property_bp.route("/<int:property_id>/avaliations/bulk", methods=["POST"])
+def route_create_avaliations_bulk(property_id):
+    """Cria várias avaliações de um imóvel em lote (uma por categoria).
+    ---
+    tags:
+      - Avaliações
+    responses:
+      201:
+        description: Avaliações criadas com sucesso
+      400:
+        description: Dados inválidos
+      404:
+        description: Imóvel, usuário ou categoria não encontrado
+    """
+    errors = bulk_create_avaliation_schema.validate(request.json or {})
+    if errors:
+        return jsonify({"errors": errors}), 400
+
+    try:
+        avaliations = create_avaliations_bulk_service(property_id, request.json or {})
+        return jsonify(avaliations), 201
+    except ValueError as exc:
+        if str(exc) in {"Property not found", "Category not found", "User not found"}:
             return jsonify({"error": str(exc)}), 404
         return jsonify({"error": str(exc)}), 400
 
@@ -298,6 +375,64 @@ def route_list_avaliations(property_id):
         return jsonify(avaliations), 200
     except ValueError as exc:
         if str(exc) == "Property not found":
+            return jsonify({"error": str(exc)}), 404
+        return jsonify({"error": str(exc)}), 400
+
+
+@property_bp.route("/<int:property_id>/avaliations/<int:avaliation_id>", methods=["PUT"])
+@token_required
+def route_update_avaliation(current_user, property_id, avaliation_id):
+    """Atualiza uma avaliação do próprio usuário.
+    ---
+    tags:
+      - Avaliações
+    responses:
+      200:
+        description: Avaliação atualizada
+      400:
+        description: Dados inválidos
+      403:
+        description: Sem permissão para alterar a avaliação
+      404:
+        description: Avaliação não encontrada
+    """
+    errors = update_avaliation_schema.validate(request.json or {})
+    if errors:
+        return jsonify({"errors": errors}), 400
+
+    try:
+        updated = update_avaliation_service(property_id, avaliation_id, current_user.id, request.json or {})
+        return jsonify(updated), 200
+    except PermissionError as exc:
+        return jsonify({"error": str(exc)}), 403
+    except ValueError as exc:
+        if str(exc) == "Avaliation not found":
+            return jsonify({"error": str(exc)}), 404
+        return jsonify({"error": str(exc)}), 400
+
+
+@property_bp.route("/<int:property_id>/avaliations/<int:avaliation_id>", methods=["DELETE"])
+@token_required
+def route_delete_avaliation(current_user, property_id, avaliation_id):
+    """Remove uma avaliação do próprio usuário.
+    ---
+    tags:
+      - Avaliações
+    responses:
+      204:
+        description: Avaliação removida
+      403:
+        description: Sem permissão para excluir a avaliação
+      404:
+        description: Avaliação não encontrada
+    """
+    try:
+        delete_avaliation_service(property_id, avaliation_id, current_user.id)
+        return "", 204
+    except PermissionError as exc:
+        return jsonify({"error": str(exc)}), 403
+    except ValueError as exc:
+        if str(exc) == "Avaliation not found":
             return jsonify({"error": str(exc)}), 404
         return jsonify({"error": str(exc)}), 400
     
