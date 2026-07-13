@@ -30,10 +30,27 @@ def create_property_for_test(app, name, price=250000.0):
         return property_obj.id
 
 
+def create_category_for_test(app, name="Categoria Teste"):
+    with app.app_context():
+        from app import db
+        from app.models.category import Category
+
+        category = Category(name=name, description=f"Descricao de {name}")
+        db.session.add(category)
+        db.session.commit()
+        return category.id
+
+
 class TestCreateAvaliationRoute:
     def test_valid_payload_returns_201(self, client, app):
         property_id = create_property_for_test(app, "Casa para avaliar", 240000.0)
-        payload = {"comment": "Excelente imóvel", "stars": 5, "photos": ["https://img.com/1.jpg"]}
+        category_id = create_category_for_test(app, "Vizinhanca")
+        payload = {
+            "category_id": category_id,
+            "comment": "Excelente imóvel",
+            "stars": 5,
+            "photos": ["https://img.com/1.jpg"],
+        }
 
         res = client.post(
             f"/properties/{property_id}/avaliations",
@@ -46,6 +63,8 @@ class TestCreateAvaliationRoute:
         assert body["comment"] == payload["comment"]
         assert body["stars"] == payload["stars"]
         assert body["property_id"] == property_id
+        assert body["category_id"] == category_id
+        assert body["category_name"] == "Vizinhanca"
 
     def test_missing_comment_returns_400(self, client):
         payload = {"stars": 4}
@@ -66,7 +85,7 @@ class TestCreateAvaliationRoute:
         assert res.status_code == 400
 
     def test_unknown_property_returns_404(self, client):
-        payload = {"comment": "ok", "stars": 3}
+        payload = {"category_id": 1, "comment": "ok", "stars": 3}
         res = client.post(
             "/properties/99999/avaliations",
             data=json.dumps(payload),
@@ -78,14 +97,15 @@ class TestCreateAvaliationRoute:
 class TestListAvaliationRoute:
     def test_returns_list_for_property(self, client, app):
         property_id = create_property_for_test(app, "Casa para listar", 260000.0)
+        category_id = create_category_for_test(app, "Infraestrutura")
         client.post(
             f"/properties/{property_id}/avaliations",
-            data=json.dumps({"comment": "Bom", "stars": 4}),
+            data=json.dumps({"category_id": category_id, "comment": "Bom", "stars": 4}),
             content_type="application/json",
         )
         client.post(
             f"/properties/{property_id}/avaliations",
-            data=json.dumps({"comment": "Ruim", "stars": 2}),
+            data=json.dumps({"category_id": category_id, "comment": "Ruim", "stars": 2}),
             content_type="application/json",
         )
 
@@ -94,17 +114,19 @@ class TestListAvaliationRoute:
         body = res.get_json()
         assert isinstance(body, list)
         assert len(body) == 2
+        assert body[0]["category_name"] == "Infraestrutura"
 
     def test_filters_by_stars_query_param(self, client, app):
         property_id = create_property_for_test(app, "Casa para filtrar", 190000.0)
+        category_id = create_category_for_test(app, "Localizacao")
         client.post(
             f"/properties/{property_id}/avaliations",
-            data=json.dumps({"comment": "Ótimo", "stars": 5}),
+            data=json.dumps({"category_id": category_id, "comment": "Ótimo", "stars": 5}),
             content_type="application/json",
         )
         client.post(
             f"/properties/{property_id}/avaliations",
-            data=json.dumps({"comment": "Médio", "stars": 3}),
+            data=json.dumps({"category_id": category_id, "comment": "Médio", "stars": 3}),
             content_type="application/json",
         )
 
