@@ -19,6 +19,7 @@ from app.services.avaliation_service import (
 from app.services.catergory_service import list_categories as list_categories_service
 
 from app.services.auth_service import token_required
+from app.exceptions import AppError
 
 property_bp = Blueprint("properties", __name__, url_prefix="/properties")
 
@@ -313,12 +314,10 @@ def route_create_avaliation(property_id):
         return jsonify({"errors": errors}), 400
 
     try:
-        avaliation = create_avaliation_service(property_id, request.json or {})
-        return jsonify(avaliation), 201
-    except ValueError as exc:
-        if str(exc) in {"Property not found", "Category not found", "User not found"}:
-            return jsonify({"error": str(exc)}), 404
-        return jsonify({"error": str(exc)}), 400
+      avaliation = create_avaliation_service(property_id, request.json or {})
+      return jsonify(avaliation), 201
+    except AppError as exc:
+      return jsonify({"error": str(exc)}), exc.status_code
 
 @property_bp.route("/<int:property_id>/avaliations/bulk", methods=["POST"])
 def route_create_avaliations_bulk(property_id):
@@ -339,12 +338,10 @@ def route_create_avaliations_bulk(property_id):
         return jsonify({"errors": errors}), 400
 
     try:
-        avaliations = create_avaliations_bulk_service(property_id, request.json or {})
-        return jsonify(avaliations), 201
-    except ValueError as exc:
-        if str(exc) in {"Property not found", "Category not found", "User not found"}:
-            return jsonify({"error": str(exc)}), 404
-        return jsonify({"error": str(exc)}), 400
+      avaliations = create_avaliations_bulk_service(property_id, request.json or {})
+      return jsonify(avaliations), 201
+    except AppError as exc:
+      return jsonify({"error": str(exc)}), exc.status_code
 
 
 @property_bp.route("/<int:property_id>/avaliations", methods=["GET"])
@@ -371,12 +368,10 @@ def route_list_avaliations(property_id):
         description: Imóvel não encontrado
     """
     try:
-        avaliations = list_avaliations_service(property_id, request.args.get("stars"))
-        return jsonify(avaliations), 200
-    except ValueError as exc:
-        if str(exc) == "Property not found":
-            return jsonify({"error": str(exc)}), 404
-        return jsonify({"error": str(exc)}), 400
+      avaliations = list_avaliations_service(property_id, request.args.get("stars"))
+      return jsonify(avaliations), 200
+    except AppError as exc:
+      return jsonify({"error": str(exc)}), exc.status_code
 
 
 @property_bp.route("/<int:property_id>/avaliations/<int:avaliation_id>", methods=["PUT"])
@@ -401,14 +396,10 @@ def route_update_avaliation(current_user, property_id, avaliation_id):
         return jsonify({"errors": errors}), 400
 
     try:
-        updated = update_avaliation_service(property_id, avaliation_id, current_user.id, request.json or {})
-        return jsonify(updated), 200
-    except PermissionError as exc:
-        return jsonify({"error": str(exc)}), 403
-    except ValueError as exc:
-        if str(exc) == "Avaliation not found":
-            return jsonify({"error": str(exc)}), 404
-        return jsonify({"error": str(exc)}), 400
+      updated = update_avaliation_service(property_id, avaliation_id, current_user.id, request.json or {})
+      return jsonify(updated), 200
+    except AppError as exc:
+      return jsonify({"error": str(exc)}), exc.status_code
 
 
 @property_bp.route("/<int:property_id>/avaliations/<int:avaliation_id>", methods=["DELETE"])
@@ -427,14 +418,10 @@ def route_delete_avaliation(current_user, property_id, avaliation_id):
         description: Avaliação não encontrada
     """
     try:
-        delete_avaliation_service(property_id, avaliation_id, current_user.id)
-        return "", 204
-    except PermissionError as exc:
-        return jsonify({"error": str(exc)}), 403
-    except ValueError as exc:
-        if str(exc) == "Avaliation not found":
-            return jsonify({"error": str(exc)}), 404
-        return jsonify({"error": str(exc)}), 400
+      delete_avaliation_service(property_id, avaliation_id, current_user.id)
+      return "", 204
+    except AppError as exc:
+      return jsonify({"error": str(exc)}), exc.status_code
     
 @property_bp.route("/<int:property_id>", methods=["GET"])
 def route_get_property_by_id(property_id):

@@ -3,72 +3,91 @@ from app.models.avaliation import Avaliation
 from app.models.category import Category
 from app.models.property import Property
 from app.models.user import User
+from app.exceptions import BadRequest, NotFound, Forbidden
 
 
 def _get_valid_person_user(user_id: int) -> User:
     try:
         user_id = int(user_id)
     except (TypeError, ValueError) as exc:
-        raise ValueError("user_id must be an integer") from exc
+        raise BadRequest("user_id must be an integer") from exc
 
     user_obj = db.session.get(User, user_id)
     if not user_obj:
-        raise ValueError("User not found")
+        raise NotFound("User not found")
     if user_obj.type != "person":
-        raise ValueError("Only person users can create avaliations")
+        raise Forbidden("Only person users can create avaliations")
     return user_obj
 
 
 def _assert_user_never_reviewed_property(property_id: int, user_id: int) -> None:
     already_reviewed = Avaliation.query.filter_by(property_id=property_id, user_id=user_id).first()
     if already_reviewed:
-        raise ValueError("User already reviewed this property")
+        raise BadRequest("User already reviewed this property")
+
+
+def _get_property_or_404(property_id: int) -> Property:
+    property_obj = db.session.get(Property, property_id)
+    if not property_obj:
+        raise NotFound("Property not found")
+    return property_obj
+
+
+def _validate_comment(value: str) -> str:
+    comment = (value or "").strip()
+    if not comment:
+        raise BadRequest("comment is required")
+    return comment
+
+
+def _validate_stars(value) -> int:
+    try:
+        stars = int(value)
+    except (TypeError, ValueError) as exc:
+        raise BadRequest("stars must be an integer between 0 and 5") from exc
+
+    if not 0 <= stars <= 5:
+        raise BadRequest("stars must be between 0 and 5")
+    return stars
+
+
+def _validate_photos(value):
+    photos = value
+    if photos is not None and not isinstance(photos, list):
+        raise BadRequest("photos must be a list of URLs")
+    return photos
 
 
 def create_avaliation(property_id: int, data: dict) -> dict:
-    property_obj = db.session.get(Property, property_id)
-    if not property_obj:
-        raise ValueError("Property not found")
+    _get_property_or_404(property_id)
 
-    comment = (data.get("comment") or "").strip()
-    if not comment:
-        raise ValueError("comment is required")
-
-    try:
-        stars = int(data.get("stars"))
-    except (TypeError, ValueError) as exc:
-        raise ValueError("stars must be an integer between 0 and 5") from exc
-
-    if not 0 <= stars <= 5:
-        raise ValueError("stars must be between 0 and 5")
-
-    photos = data.get("photos")
-    if photos is not None and not isinstance(photos, list):
-        raise ValueError("photos must be a list of URLs")
+    comment = _validate_comment(data.get("comment"))
+    stars = _validate_stars(data.get("stars"))
+    photos = _validate_photos(data.get("photos"))
 
     user_id = data.get("user_id")
     if user_id is None:
-        raise ValueError("user_id is required")
+        raise BadRequest("user_id is required")
 
     user_obj = _get_valid_person_user(user_id)
     _assert_user_never_reviewed_property(property_id, user_obj.id)
 
     category_id = data.get("category_id")
     if category_id is None:
-        raise ValueError("category_id is required")
+        raise BadRequest("category_id is required")
 
     try:
         category_id = int(category_id)
     except (TypeError, ValueError) as exc:
-        raise ValueError("category_id must be an integer") from exc
+        raise BadRequest("category_id must be an integer") from exc
 
     category_obj = db.session.get(Category, category_id)
     if not category_obj:
-        raise ValueError("Category not found")
+        raise NotFound("Category not found")
 
     avaliation = Avaliation(
         property_id=property_id,
-        user_id=user_id,
+        user_id=user_obj.id,
         category_id=category_id,
         comment=comment,
         stars=stars,
@@ -81,20 +100,18 @@ def create_avaliation(property_id: int, data: dict) -> dict:
 
 
 def create_avaliations_bulk(property_id: int, data: dict) -> list[dict]:
-    property_obj = db.session.get(Property, property_id)
-    if not property_obj:
-        raise ValueError("Property not found")
+    _get_property_or_404(property_id)
 
     user_id = data.get("user_id")
     if user_id is None:
-        raise ValueError("user_id is required")
+        raise BadRequest("user_id is required")
 
     user_obj = _get_valid_person_user(user_id)
     _assert_user_never_reviewed_property(property_id, user_obj.id)
 
     items = data.get("avaliations")
     if not isinstance(items, list) or len(items) == 0:
-        raise ValueError("avaliations must be a non-empty list")
+        raise BadRequest("avaliations must be a non-empty list")
 
     seen_categories = set()
     created: list[Avaliation] = []
@@ -102,36 +119,24 @@ def create_avaliations_bulk(property_id: int, data: dict) -> list[dict]:
     for item in items:
         category_id = item.get("category_id")
         if category_id is None:
-            raise ValueError("category_id is required")
+            raise BadRequest("category_id is required")
 
         try:
             category_id = int(category_id)
         except (TypeError, ValueError) as exc:
-            raise ValueError("category_id must be an integer") from exc
+            raise BadRequest("category_id must be an integer") from exc
 
         if category_id in seen_categories:
-            raise ValueError("category_id must be unique in avaliations list")
+            raise BadRequest("category_id must be unique in avaliations list")
         seen_categories.add(category_id)
 
         category_obj = db.session.get(Category, category_id)
         if not category_obj:
-            raise ValueError("Category not found")
+            raise NotFound("Category not found")
 
-        comment = (item.get("comment") or "").strip()
-        if not comment:
-            raise ValueError("comment is required")
-
-        try:
-            stars = int(item.get("stars"))
-        except (TypeError, ValueError) as exc:
-            raise ValueError("stars must be an integer between 0 and 5") from exc
-
-        if not 0 <= stars <= 5:
-            raise ValueError("stars must be between 0 and 5")
-
-        photos = item.get("photos", [])
-        if photos is not None and not isinstance(photos, list):
-            raise ValueError("photos must be a list of URLs")
+        comment = _validate_comment(item.get("comment"))
+        stars = _validate_stars(item.get("stars"))
+        photos = _validate_photos(item.get("photos", []))
 
         avaliation = Avaliation(
             property_id=property_id,
@@ -149,9 +154,7 @@ def create_avaliations_bulk(property_id: int, data: dict) -> list[dict]:
 
 
 def list_avaliations(property_id: int, stars: int | None = None) -> list[dict]:
-    property_obj = db.session.get(Property, property_id)
-    if not property_obj:
-        raise ValueError("Property not found")
+    _get_property_or_404(property_id)
 
     query = (
         db.session.query(Avaliation, Category.name.label("category_name"))
@@ -160,14 +163,7 @@ def list_avaliations(property_id: int, stars: int | None = None) -> list[dict]:
     )
 
     if stars is not None:
-        try:
-            stars_filter = int(stars)
-        except (TypeError, ValueError) as exc:
-            raise ValueError("stars must be an integer between 0 and 5") from exc
-
-        if not 0 <= stars_filter <= 5:
-            raise ValueError("stars must be between 0 and 5")
-
+        stars_filter = _validate_stars(stars)
         query = query.filter(Avaliation.stars == stars_filter)
 
     rows = query.order_by(Avaliation.created_at.desc()).all()
@@ -182,30 +178,21 @@ def list_avaliations(property_id: int, stars: int | None = None) -> list[dict]:
 def update_avaliation(property_id: int, avaliation_id: int, user_id: int, data: dict) -> dict:
     avaliation = db.session.get(Avaliation, avaliation_id)
     if not avaliation or avaliation.property_id != property_id:
-        raise ValueError("Avaliation not found")
+        raise NotFound("Avaliation not found")
 
     if avaliation.user_id != user_id:
-        raise PermissionError("You can only update your own avaliation")
+        raise Forbidden("You can only update your own avaliation")
 
     comment = data.get("comment")
-    if comment is None or not str(comment).strip():
-        raise ValueError("comment is required")
+    comment = _validate_comment(comment)
+    stars = _validate_stars(data.get("stars"))
 
-    try:
-        stars = int(data.get("stars"))
-    except (TypeError, ValueError) as exc:
-        raise ValueError("stars must be an integer between 0 and 5") from exc
-
-    if not 0 <= stars <= 5:
-        raise ValueError("stars must be between 0 and 5")
-
-    avaliation.comment = str(comment).strip()
+    avaliation.comment = comment
     avaliation.stars = stars
 
     if "photos" in data:
         photos = data.get("photos")
-        if photos is not None and not isinstance(photos, list):
-            raise ValueError("photos must be a list of URLs")
+        photos = _validate_photos(photos)
         avaliation.photos = photos
 
     db.session.commit()
@@ -215,10 +202,10 @@ def update_avaliation(property_id: int, avaliation_id: int, user_id: int, data: 
 def delete_avaliation(property_id: int, avaliation_id: int, user_id: int) -> None:
     avaliation = db.session.get(Avaliation, avaliation_id)
     if not avaliation or avaliation.property_id != property_id:
-        raise ValueError("Avaliation not found")
+        raise NotFound("Avaliation not found")
 
     if avaliation.user_id != user_id:
-        raise PermissionError("You can only delete your own avaliation")
+        raise Forbidden("You can only delete your own avaliation")
 
     db.session.delete(avaliation)
     db.session.commit()
