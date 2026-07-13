@@ -7,6 +7,8 @@ import MyProperties from "../pages/MyProperties"
 import Properties from "../pages/Properties"
 import PropertyDetails from "../pages/PropertyDetails";
 import CreatePropertyEvaluation from "../pages/CreatePropertyEvaluation";
+import AgendarVisita from "../pages/AgendarVisita";
+import MinhasVisitas from "../pages/MinhasVisitas";
 
 export default function AppRoutes() {
   return (
@@ -19,6 +21,8 @@ export default function AppRoutes() {
       <Route path="/imoveis" element={<Properties />} />
       <Route path="/imovel/:id" element={<PropertyDetails />} />
       <Route path="/imovel/:id/avaliar" element={<CreatePropertyEvaluation />} />
+      <Route path="/imovel/:id/agendar" element={<AgendarVisita />} />
+      <Route path="/minhas-visitas" element={<MinhasVisitas />} />
     </Routes>
   )
 }
