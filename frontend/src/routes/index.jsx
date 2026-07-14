@@ -11,6 +11,7 @@ import AgendarVisita from "../pages/AgendarVisita";
 import MinhasVisitas from "../pages/MinhasVisitas";
 import Chats from "../pages/Chats";
 import ChatRoom from "../pages/ChatRoom";
+import About from "../pages/About";
 
 export default function AppRoutes() {
   return (
@@ -26,7 +27,8 @@ export default function AppRoutes() {
       <Route path="/imovel/:id/agendar" element={<AgendarVisita />} />
       <Route path="/minhas-visitas" element={<MinhasVisitas />} />
       <Route path="/chats" element={<Chats />} />
-      <Route path="/sobre-nos" element={<Chats />} />
+      <Route path="/chats/:roomId" element={<ChatRoom />} />
+      <Route path="/sobre-nos" element={<About />} />
     </Routes>
   )
 }
