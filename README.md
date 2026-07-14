@@ -564,6 +564,10 @@ Sistemas Externos:
    ```bash
    cd backend
    ```
+2. Suba o banco de dados com o Docker:
+   ```bash
+   docker compose up -d
+   ```   
 2. Crie um ambiente virtual e ative-o:
    ```bash
     python -m venv venv
