@@ -5,6 +5,7 @@ import pytest
 
 from app import db
 from app.models.user import PersonUser, EnterpriseUser
+from app.services.auth_service import generate_token
 from app.models.property import Property
 from app.models.visit import Visit
 
@@ -97,17 +98,21 @@ def test_update_visit_status_decision_table(client, app):
     visit = res.get_json()
     vid = visit["id"]
 
-    # valid status change
-    res_ok = client.patch(f"/visits/{vid}/status", data=json.dumps({"status": "confirmed"}), content_type="application/json")
+    # valid status change (authorized as enterprise owner)
+    with app.app_context():
+        ent_user = db.session.get(EnterpriseUser, ent)
+        token = generate_token(ent_user)
+    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+    res_ok = client.patch(f"/visits/{vid}/status", data=json.dumps({"status": "confirmed"}), headers=headers)
     assert res_ok.status_code == 200
     assert res_ok.get_json().get("status") == "confirmed"
 
     # invalid status
-    res_bad = client.patch(f"/visits/{vid}/status", data=json.dumps({"status": "invalid"}), content_type="application/json")
+    res_bad = client.patch(f"/visits/{vid}/status", data=json.dumps({"status": "invalid"}), headers=headers)
     assert res_bad.status_code == 400
 
     # non-existent visit
-    res_missing = client.patch(f"/visits/99999/status", data=json.dumps({"status": "confirmed"}), content_type="application/json")
+    res_missing = client.patch(f"/visits/99999/status", data=json.dumps({"status": "confirmed"}), headers=headers)
     assert res_missing.status_code == 404
 
 
