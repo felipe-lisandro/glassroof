@@ -4,5 +4,16 @@ from app.models.property import Property
 from app.models.location import Location
 from app.models.image import Image
 from app.models.category import Category
+from app.models.visit import Visit
 
-__all__ = ["User", "PersonUser", "EnterpriseUser", "Avaliation", "Property", "Location", "Image", "Category"]
+__all__ = [
+    "User",
+    "PersonUser",
+    "EnterpriseUser",
+    "Avaliation",
+    "Property",
+    "Location",
+    "Image",
+    "Category",
+    "Visit",
+]
