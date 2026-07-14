@@ -50,7 +50,7 @@ def test_get_all_properties_calculates_average_rating(app):
 
         result = get_all_properties()
 
-        assert result[0]["overall_rating"] == 4.0
+        assert result["items"][0]["overall_rating"] == 4.0
 
 
 def test_get_all_properties_marks_unrated_property(app):
@@ -59,5 +59,25 @@ def test_get_all_properties_marks_unrated_property(app):
 
         result = get_all_properties()
 
-        assert result[0]["id"] == property_obj.id
-        assert result[0]["overall_rating"] is None
+        assert result["items"][0]["id"] == property_obj.id
+        assert result["items"][0]["overall_rating"] is None
+
+
+def test_get_all_properties_filters_sorts_and_paginates(app):
+    with app.app_context():
+        make_property(3, price=100000)
+        make_property(4, price=300000)
+        make_property(5, price=200000)
+
+        result = get_all_properties(
+            min_price=150000,
+            max_price=300000,
+            sort_by="price",
+            sort_order="desc",
+            page=1,
+            per_page=1,
+        )
+
+        assert result["total"] == 2
+        assert result["pages"] == 2
+        assert result["items"][0]["price"] == 300000
