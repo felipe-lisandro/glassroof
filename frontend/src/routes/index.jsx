@@ -5,7 +5,8 @@ import Cadastro from "../pages/Cadastro"
 import CreateProperty from "../pages/CreateProperty"
 import MyProperties from "../pages/MyProperties"
 import Properties from "../pages/Properties"
-import PropertyDetails from "../pages/PropertyDetails";
+import PropertyDetails from "../pages/PropertyDetails"
+import About from "../pages/About"
 
 export default function AppRoutes() {
   return (
@@ -17,6 +18,7 @@ export default function AppRoutes() {
       <Route path="/meus-imoveis" element={<MyProperties />} />
       <Route path="/imoveis" element={<Properties />} />
       <Route path="/imovel/:id" element={<PropertyDetails />} />
+      <Route path="/sobre" element={<About />} />
     </Routes>
   )
 }
