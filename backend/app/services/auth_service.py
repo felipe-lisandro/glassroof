@@ -1,7 +1,8 @@
 from datetime import datetime, timedelta, timezone
 
 import jwt
-from flask import current_app
+from flask import current_app, request, jsonify
+from functools import wraps
 
 from app.models.user import User
 
@@ -25,3 +26,27 @@ def generate_token(user: User) -> str:
         "exp": datetime.now(timezone.utc) + timedelta(hours=24),
     }
     return jwt.encode(payload, current_app.config["SECRET_KEY"], algorithm="HS256")
+
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+        if "Authorization" in request.headers:
+            auth_header = request.headers["Authorization"].split(" ")
+            if len(auth_header) == 2:
+                token = auth_header[1]
+
+        if not token:
+            return jsonify({"error": "Token de autenticação ausente"}), 401
+
+        try:
+            data = jwt.decode(token, current_app.config["SECRET_KEY"], algorithms=["HS256"])
+            current_user = User.query.get(data["user_id"])
+            if not current_user:
+                return jsonify({"error": "Usuário inválido"}), 401
+        except Exception as e:
+            return jsonify({"error": "Token inválido ou expirado"}), 401
+
+        return f(current_user, *args, **kwargs)
+
+    return decorated

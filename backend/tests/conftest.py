@@ -26,7 +26,10 @@ def app():
     with application.app_context():
         _db.create_all()
         yield application
+        _db.session.remove()
         _db.drop_all()
+        _db.session.remove()
+        _db.engine.dispose()
 
 
 @pytest.fixture(scope="session")
@@ -47,3 +50,4 @@ def clean_db(app):
         for table in reversed(_db.metadata.sorted_tables):
             _db.session.execute(table.delete())
         _db.session.commit()
+        _db.session.remove()
