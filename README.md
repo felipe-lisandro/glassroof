@@ -76,30 +76,30 @@ O **Glassroof** adota uma **arquitetura em camadas (Layered Architecture)** comb
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│                     Glassroof System                          │
+│                     Glassroof System                         │
 ├──────────────────────────────────────────────────────────────┤
-│                                                               │
+│                                                              │
 │  ┌──────────────┐                    ┌──────────────────┐    │
 │  │              │    HTTP/REST       │                  │    │
 │  │  Usuário     │◄──────────────────►│  React Frontend  │    │
 │  │   (Browser)  │                    │    (SPA)         │    │
 │  └──────────────┘                    └──────────────────┘    │
-│                                              │                │
-│                                              │ HTTP Requests  │
-│                                              ▼                │
+│                                              │               │
+│                                              │ HTTP Requests │
+│                                              ▼               │
 │                                      ┌──────────────────┐    │
 │                                      │  Flask API       │    │
 │                                      │  (RESTful)       │    │
 │                                      └──────────────────┘    │
-│                                              │                │
-│                                              │ SQL Queries    │
-│                                              ▼                │
+│                                              │               │
+│                                              │ SQL Queries   │
+│                                              ▼               │
 │                                      ┌──────────────────┐    │
 │                                      │  MySQL Database  │    │
 │                                      │  (Relacional)    │    │
 │                                      └──────────────────┘    │
-│                                                               │
-└─────────────────────────────────────────────────────────��────┘
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
 
 Atores:
 • Usuários (Visitantes, Inquilinos, Imobiliárias)
@@ -117,54 +117,54 @@ Sistemas Externos:
 ┌────────────────────────────────────────────────────────────────────────────┐
 │                        Glassroof Application                               │
 ├────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  ┌─────────────────────────────────┐          ┌────────────────────────┐  │
-│  │   React Frontend (SPA)          │          │   Browser / Node.js    │  │
-│  │  ┌──────────────────────────────┤          │                        │  │
-│  │  │ • Home Page                  │          │ • React 18+            │  │
-│  │  │ • Property Search & Filter   │          │ • React Router 6       │  │
-│  │  │ • Property Details           │          │ • Axios (HTTP Client)  │  │
-│  │  │ • Reviews Management         │          │ • Material UI / Styled │  │
-│  │  │ • User Authentication        │          │                        │  │
-│  │  │ • Admin Dashboard            │          │                        │  │
-│  │  └──────────────────────────────┤          │                        │  │
-│  │            │                    │          │                        │  │
-│  │            │ HTTP/JSON          │          │                        │  │
-│  │            ▼                    │          │                        │  │
-│  └─────────────────────────────────┘          └────────────────────────┘  │
+│                                                                            │
+│  ┌─────────────────────────────────┐          ┌────────────────────────┐   │
+│  │   React Frontend (SPA)          │          │   Browser / Node.js    │   │
+│  │  ┌──────────────────────────────┤          │                        │   │
+│  │  │ • Home Page                  │          │ • React 18+            │   │
+│  │  │ • Property Search & Filter   │          │ • React Router 6       │   │ 
+│  │  │ • Property Details           │          │ • Axios (HTTP Client)  │   │
+│  │  │ • Reviews Management         │          │ • Material UI / Styled │   │
+│  │  │ • User Authentication        │          │                        │   │
+│  │  │ • Admin Dashboard            │          │                        │   │
+│  │  └──────────────────────────────┤          │                        │   │
+│  │            │                    │          │                        │   │
+│  │            │ HTTP/JSON          │          │                        │   │
+│  │            ▼                    │          │                        │   │
+│  └─────────────────────────────────┘          └────────────────────────┘   │
 │            │                                                               │
 │            │ REST API Calls                                                │
 │            ▼                                                               │
-│  ┌─────────────────────────────────┐          ┌────────────────────────┐  │
-│  │   Flask API (Python)            │          │   Python 3.10+         │  │
-│  │  ┌──────────────────────────────┤          │                        │  │
-│  │  │ • Routes & Controllers        │          │ • Flask 2.x            │  │
-│  │  │ • Authentication Service      │          │ • SQLAlchemy ORM       │  │
-│  │  │ • Property Service            │          │ • Pytest / Unittest    │  │
-│  │  │ • Review Service              │          │ • JWT (Auth)           │  │
-│  │  │ • User Service                │          │ • CORS Support         │  │
-│  │  │ • Search & Filter Logic       │          │                        │  │
-│  │  │ • Validation & Error Handler  │          │                        │  │
-│  │  └──────────────────────────────┤          │                        │  │
-│  │            │                    │          │                        │  │
-│  │            │ SQL Queries        │          │                        │  │
-│  │            ▼                    │          │                        │  │
-│  └─────────────────────────────────┘          └────────────────────────┘  │
+│  ┌─────────────────────────────────┐           ┌────────────────────────┐  │
+│  │   Flask API (Python)            │           │   Python 3.10+         │  │
+│  │  ┌──────────────────────────────┤           │                        │  │
+│  │  │ • Routes & Controllers       │           │ • Flask 2.x            │  │
+│  │  │ • Authentication Servic      │           │ • SQLAlchemy ORM       │  │
+│  │  │ • Property Service           │           │ • Pytest / Unittest    │  │
+│  │  │ • Review Service             │           │ • JWT (Auth)           │  │
+│  │  │ • User Service               │           │ • CORS Support         │  │
+│  │  │ • Search & Filter Logic      │           │                        │  │
+│  │  │ • Validation & Error Handler │           │                        │  │
+│  │  └──────────────────────────────┤           │                        │  │
+│  │            │                    │           │                        │  │
+│  │            │ SQL Queries        │           │                        │  │
+│  │            ▼                    │           │                        │  │
+│  └─────────────────────────────────┘           └────────────────────────┘  │
 │            │                                                               │
 │            ▼                                                               │
-│  ┌─────────────────────────────────┐          ┌────────────────────────┐  │
-│  │   MySQL Database                │          │   MySQL 8.0+           │  │
-│  │  ┌──────────────────────────────┤          │                        │  │
-│  │  │ • Users Table                 │          │ • Relational Schema    │  │
-│  │  │ • Properties Table            │          │ • Indexes & Triggers   │  │
-│  │  │ • Reviews Table               │          │ • Foreign Keys         │  │
-│  │  │ • Categories Table            │          │ • Data Integrity       │  │
-│  │  │ • Locations Table             │          │                        │  │
-│  │  │ • Images Table                │          │                        │  │
-│  │  └──────────────────────────────┤          │                        │  │
-│  │                                 │          │                        │  │
-│  └─────────────────────────────────┘          └────────────────────────┘  │
-│                                                                             │
+│  ┌─────────────────────────────────┐          ┌────────────────────────┐   │
+│  │   MySQL Database                │          │   MySQL 8.0+           │   │
+│  │  ┌──────────────────────────────┤          │                        │   │
+│  │  │ • Users Table                │          │ • Relational Schema    │   │
+│  │  │ • Properties Table           │          │ • Indexes & Triggers   │   │
+│  │  │ • Reviews Table              │          │ • Foreign Keys         │   │
+│  │  │ • Categories Table           │          │ • Data Integrity       │   │
+│  │  │ • Locations Table            │          │                        │   │
+│  │  │ • Images Table               │          │                        │   │
+│  │  └──────────────────────────────┤          │                        │   │
+│  │                                 │          │                        │   │
+│  └─────────────────────────────────┘          └────────────────────────┘   │
+│                                                                            │
 └────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -178,59 +178,59 @@ Sistemas Externos:
 ┌──────────────────────────────────────────────────────────────┐
 │                  Flask API (Backend)                         │
 ├──────────────────────────────────────────────────────────────┤
-│                                                               │
+│                                                              │
 │  ┌─────────────────────────────────────────────────────────┐ │
-│  │         CAMADA DE APRESENTAÇÃO (Routes)                │ │
-│  │                                                          │ │
+│  │         CAMADA DE APRESENTAÇÃO (Routes)                 │ │
+│  │                                                         │ │
 │  │  • /api/auth              (Login, Signup, Logout)       │ │
-│  │  • /api/properties        (CRUD de Imóveis)            │ │
-│  │  • /api/reviews           (CRUD de Avaliações)         │ │
+│  │  • /api/properties        (CRUD de Imóveis)             │ │
+│  │  • /api/reviews           (CRUD de Avaliações)          │ │
 │  │  • /api/users             (Gerenciamento de Usuários)   │ │
-│  │  • /api/search            (Busca e Filtros)            │ │
-│  │                                                          │ │
+│  │  • /api/search            (Busca e Filtros)             │ │
+│  │                                                         │ │
 │  │  Responsabilidade: Mapear requisições HTTP para         │ │
 │  │  operações de negócio. Validação inicial de entrada.    │ │
-│  └───────────────────────────��──────────────────────────────┘ │
-│              │ Chamadas de Métodos                            │
-│              ▼                                                 │
+│  └─────────────────────────────────────────────────────────┘ │
+│              │ Chamadas de Métodos                           │
+│              ▼                                               │
 │  ┌─────────────────────────────────────────────────────────┐ │
 │  │       CAMADA DE NEGÓCIO (Services)                      │ │
-│  │                                                          │ │
+│  │                                                         │ │
 │  │  • AuthService             (Autenticação & JWT)         │ │
-│  │  • PropertyService         (Lógica de Imóveis)         │ │
-│  │  • ReviewService           (Lógica de Avaliações)      │ │
-│  │  • UserService             (Lógica de Usuários)        │ │
-│  │  • SearchService           (Busca & Filtros)          │ │
-│  │  • ValidationService       (Regras de Validação)       │ │
-│  │                                                          │ │
+│  │  • PropertyService         (Lógica de Imóveis)          │ │
+│  │  • ReviewService           (Lógica de Avaliações)       │ │
+│  │  • UserService             (Lógica de Usuários)         │ │
+│  │  • SearchService           (Busca & Filtros)            │ │
+│  │  • ValidationService       (Regras de Validação)        │ │
+│  │                                                         │ │
 │  │  Responsabilidade: Implementar as regras de negócio,    │ │
 │  │  lógica de validação, cálculos e orquestração de        │ │
 │  │  operações complexas. Isoladas para fácil testagem.     │ │
-│  └──────────────────────────────────────────────────────────┘ │
-│              │ Acesso a Dados                                  │
-│              ▼                                                 │
+│  └─────────────────────────────────────────────────────────┘ │
+│              │ Acesso a Dados                                │
+│              ▼                                               │
 │  ┌─────────────────────────────────────────────────────────┐ │
 │  │      CAMADA DE PERSISTÊNCIA (Models & ORM)              │ │
-│  │                                                          │ │
-│  │  • User Model              (Tabela users)              │ │
-│  │  • Property Model          (Tabela properties)         │ │
-│  │  • Review Model            (Tabela reviews)           │ │
-│  │  • Category Model          (Tabela categories)        │ │
-│  │  • Location Model          (Tabela locations)         │ │
-│  │  • Image Model             (Tabela images)            │ │
-│  │                                                          │ │
+│  │                                                         │ │
+│  │  • User Model              (Tabela users)               │ │
+│  │  • Property Model          (Tabela properties)          │ │
+│  │  • Review Model            (Tabela reviews)             │ │
+│  │  • Category Model          (Tabela categories)          │ │
+│  │  • Location Model          (Tabela locations)           │ │
+│  │  • Image Model             (Tabela images)              │ │
+│  │                                                         │ │
 │  │  Responsabilidade: Definir a estrutura de dados,        │ │
 │  │  mapear para tabelas do banco de dados (SQLAlchemy ORM).│ │
-│  └──────────────────────────────────────────────────────────┘ │
-│              │ SQL Queries                                     │
-│              ▼                                                 │
+│  └─────────────────────────────────────────────────────────┘ │
+│              │ SQL Queries                                   │
+│              ▼                                               │
 │  ┌─────────────────────────────────────────────────────────┐ │
 │  │         CAMADA DE DADOS (Database)                      │ │
-│  │                                                          │ │
-│  │         MySQL 8.0+  (Persistent Storage)               │ │
-│  │                                                          │ │
-│  └──────────────────────────────────────────────────────────┘ │
-│                                                               │
+│  │                                                         │ │
+│  │         MySQL 8.0+  (Persistent Storage)                │ │
+│  │                                                         │ │
+│  └─────────────────────────────────────────────────────────┘ │
+│                                                              │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -240,61 +240,61 @@ Sistemas Externos:
 ┌──────────────────────────────────────────────────────────────┐
 │                 React Frontend (SPA)                         │
 ├──────────────────────────────────────────────────────────────┤
-│                                                               │
+│                                                              │
 │  ┌─────────────────────────────────────────────────────────┐ │
 │  │           CAMADA DE ROTEAMENTO                          │ │
-│  │                                                          │ │
+│  │                                                         │ │
 │  │  • React Router v6                                      │ │
 │  │  • Proteção de Rotas (PrivateRoute)                     │ │
 │  │  • Navegação SPA                                        │ │
-│  │                                                          │ │
+│  │                                                         │ │
 │  │  Responsabilidade: Mapear URLs para componentes,        │ │
 │  │  gerenciar navegação entre páginas sem reload.          │ │
-│  └──────────────────────────────────────────────────────────┘ │
-│              │ Renderização de Componentes                    │
-│              ▼                                                 │
+│  └─────────────────────────────────────────────────────────┘ │
+│              │ Renderização de Componentes                   │
+│              ▼                                               │
 │  ┌─────────────────────────────────────────────────────────┐ │
 │  │        CAMADA DE APRESENTAÇÃO (Pages & Components)      │ │
-│  │                                                          │ │
-│  │  Pages:                                                  │ │
+│  │                                                         │ │
+│  │  Pages:                                                 │ │
 │  │  • HomePage              (Listagem e busca de imóveis)  │ │
 │  │  • PropertyDetailPage    (Detalhes do imóvel)           │ │
 │  │  • LoginPage             (Autenticação)                 │ │
 │  │  • RegisterPage          (Cadastro)                     │ │
 │  │  • ReviewPage            (Avaliações)                   │ │
 │  │  • AdminDashboard        (Painel administrativo)        │ │
-│  │                                                          │ │
+│  │                                                         │ │
 │  │  Components Reutilizáveis:                              │ │
-│  │  • PropertyCard          (Card de imóvel)              │ │
-│  │  • ReviewList            (Lista de avaliações)         │ │
-│  │  • SearchBar             (Barra de busca)              │ │
-│  │  • Navbar                (Navegação principal)         │ │
-│  │  • Rating                (Componente de estrelas)      │ │
-│  │  • Modal                 (Diálogos)                    │ │
-│  │  • Form Elements         (Inputs, Buttons)             │ │
-│  │                                                          │ │
+│  │  • PropertyCard          (Card de imóvel)               │ │
+│  │  • ReviewList            (Lista de avaliações)          │ │
+│  │  • SearchBar             (Barra de busca)               │ │
+│  │  • Navbar                (Navegação principal)          │ │
+│  │  • Rating                (Componente de estrelas)       │ │
+│  │  • Modal                 (Diálogos)                     │ │
+│  │  • Form Elements         (Inputs, Buttons)              │ │
+│  │                                                         │ │
 │  │  Responsabilidade: Renderizar UI, capturar eventos      │ │
 │  │  do usuário, exibir dados. Reutilização máxima.         │ │
-│  └──────────────────────────────────────────────────────────┘ │
-│              │ Chamadas HTTP                                   │
-│              ▼                                                 │
+│  └─────────────────────────────────────────────────────────┘ │
+│              │ Chamadas HTTP                                 │
+│              ▼                                               │
 │  ┌─────────────────────────────────────────────────────────┐ │
 │  │   CAMADA DE INTEGRAÇÃO (Services & API Client)          │ │
-│  │                                                          │ │
+│  │                                                         │ │
 │  │  • authService           (Autenticação com backend)     │ │
 │  │  • propertyService       (Requisições de imóveis)       │ │
 │  │  • reviewService         (Requisições de avaliações)    │ │
 │  │  • userService           (Requisições de usuários)      │ │
 │  │  • searchService         (Busca e filtros)              │ │
 │  │  • apiClient (Axios)     (Interceptor HTTP)             │ │
-│  │                                                          │ │
+│  │                                                         │ │
 │  │  Responsabilidade: Abstrair chamadas HTTP, tratamento   │ │
-│  │  de erros, interceptação de requisições (auth tokens).   │ │
-│  └──────────────────────────────────────────────────────────┘ │
-│              │ HTTP Requests                                   │
-│              ▼                                                 │
-│         Flask API Backend                                     │
-│                                                               │
+│  │  de erros, interceptação de requisições (auth tokens).  │ │
+│  └─────────────────────────────────────────────────────────┘ │
+│              │ HTTP Requests                                 │
+│              ▼                                               │
+│         Flask API Backend                                    │
+│                                                              │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -483,7 +483,7 @@ Sistemas Externos:
                       │   ├──────────────┤       │
                       │   │ id (PK)      │       │
                       │   │ url          │       │
-                      │   │ property_id  │────────┘
+                      │   │ property_id  │───────┘
                       │   │ (FK)         │
                       │   └──────────────┘
                       │
@@ -503,40 +503,40 @@ Sistemas Externos:
 ## Diagram de Dados
 
 ```
-┌────────────────────────────────────────────────────────┐
-│              Frontend (React SPA)                       │
-│  ┌─────────────────────────────────────────────────────┤
-│  │ localStorage:                                        │
-│  │ - authToken (JWT)                                   │
-│  │ - user (JSON serializado)                           │
-│  │ - preferences (tema, idioma)                        │
-│  └─────────────────────────────────────────────────────┤
-│         │ HTTP with Bearer Token                        │
-│         ▼                                               │
+┌──────────────────────────────────────────────────────────┐
+│              Frontend (React SPA)                        │
+│  ┌───────────────────────────────────────────────────────┤
+│  │ localStorage:                                         │
+│  │ - authToken (JWT)                                     │
+│  │ - user (JSON serializado)                             │
+│  │ - preferences (tema, idioma)                          │
+│  └───────────────────────────────────────────────────────┤
+│         │ HTTP with Bearer Token                         │
+│         ▼                                                │
 │ ┌────────────────────────────────────────────────────────┐
 │ │            Backend (Flask API)                         │
 │ │  ┌───────────────────────────────────────────────────┤ │
-│ │  │ Session Memory:                                    │ │
-│ │  │ - Request context (user_id from JWT)             │ │
+│ │  │ Session Memory:                                   │ │
+│ │  │ - Request context (user_id from JWT)              │ │
 │ │  │ - Temporary cache                                 │ │
 │ │  └───────────────────────────────────────────────────┤ │
-│ │         │ SQL Queries                                 │ │
-│ │         ▼                                             │ │
+│ │         │ SQL Queries                                │ │
+│ │         ▼                                            │ │
 │ │  ┌───────────────────────────────────────────────────┐ │
 │ │  │      MySQL Database (Persistent)                  │ │
-│ │  │                                                    │ │
-│ │  │  - users (id, email, password_hash, name, type)  │ │
-│ │  │  - properties (id, title, price, user_id, ...)   │ │
-│ │  │  - reviews (id, rating, comment, user_id, ...)   │ │
-│ │  │  - locations (id, street, city, ...)             │ │
-│ │  │  - images (id, url, property_id, ...)            │ │
-│ │  │  - categories (id, name, description)            │ │
-│ │  │                                                    │ │
+│ │  │                                                   │ │
+│ │  │  - users (id, email, password_hash, name, type)   │ │
+│ │  │  - properties (id, title, price, user_id, ...)    │ │
+│ │  │  - reviews (id, rating, comment, user_id, ...)    │ │
+│ │  │  - locations (id, street, city, ...)              │ │
+│ │  │  - images (id, url, property_id, ...)             │ │
+│ │  │  - categories (id, name, description)             │ │
+│ │  │                                                   │ │
 │ │  └───────────────────────────────────────────────────┘ │
 │ │                                                        │
 │ └────────────────────────────────────────────────────────┘
-│                                                           │
-└────────────────────────────────────────────────────────────┘
+│                                                          │
+└──────────────────────────────────────────────────────────┘
 ```
 
 ---
