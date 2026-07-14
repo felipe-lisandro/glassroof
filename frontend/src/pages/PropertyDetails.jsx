@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   deletePropertyAvaliation,
   getPropertyAvaliations,
@@ -7,15 +7,18 @@ import {
   updatePropertyAvaliation,
 } from "../services/propertyService";
 import { useAuth } from "../contexts/AuthContext";
+import { createChatRoom } from "../services/chatService";
 
 function PropertyDetails() {
   const { id } = useParams();
   const { user, token } = useAuth();
+  const navigate = useNavigate();
   const [property, setProperty] = useState(null);
   const [avaliations, setAvaliations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [actionError, setActionError] = useState(null);
+  const [chatLoading, setChatLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({ comment: "", stars: "" });
 
@@ -172,6 +175,24 @@ function PropertyDetails() {
     }
   }
 
+  async function handleStartChat() {
+    if (!token) {
+      setActionError("Você precisa estar logado para iniciar o chat.");
+      return;
+    }
+
+    try {
+      setChatLoading(true);
+      setActionError(null);
+      const room = await createChatRoom(Number(id), token);
+      navigate(`/chats/${room.id}`);
+    } catch (err) {
+      setActionError(err?.error || "Não foi possível iniciar o chat.");
+    } finally {
+      setChatLoading(false);
+    }
+  }
+
   if (loading) return <div className="text-center pt-40">Carregando detalhes...</div>;
   
   if (error || !property) {
@@ -212,7 +233,17 @@ function PropertyDetails() {
 
           <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
             <h2 className="text-2xl font-semibold">Descrição</h2>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center justify-end gap-3">
+              {user?.type === "person" && (
+                <button
+                  type="button"
+                  onClick={handleStartChat}
+                  disabled={chatLoading}
+                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {chatLoading ? "Abrindo chat..." : "Iniciar chat"}
+                </button>
+              )}
               <span className="text-base text-gray-500">Média da propriedade:</span>
               <span className="text-xl font-bold text-black">
                 {averageRating !== null ? `${averageRating} / 5` : "Sem avaliações"}
