@@ -1,8 +1,16 @@
 // src/services/propertyService.js
 import API_URL from "./api";
 
-export async function getProperties() {
-  const res = await fetch(`${API_URL}/properties`);
+export async function getProperties(filters = {}) {
+  const params = new URLSearchParams();
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      params.set(key, value);
+    }
+  });
+
+  const query = params.toString();
+  const res = await fetch(`${API_URL}/properties${query ? `?${query}` : ""}`);
   const json = await res.json();
   if (!res.ok) throw json;
   return json;

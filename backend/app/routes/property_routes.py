@@ -235,10 +235,23 @@ def route_get_all_properties():
         description: Erro
     """
     try:
-        properties = get_all_properties()
+        def parse_float(name):
+            value = request.args.get(name)
+            return float(value) if value not in (None, "") else None
+
+        properties = get_all_properties(
+            min_price=parse_float("min_price"),
+            max_price=parse_float("max_price"),
+            city=request.args.get("city"),
+            min_rating=parse_float("min_rating"),
+            sort_by=request.args.get("sort_by", "id"),
+            sort_order=request.args.get("sort_order", "asc"),
+            page=request.args.get("page", 1, type=int),
+            per_page=request.args.get("per_page", 9, type=int),
+        )
         return jsonify(properties), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
+    except (TypeError, ValueError) as exc:
+        return jsonify({"error": str(exc)}), 400
 
 
 @property_bp.route("/categories", methods=["GET"])
