@@ -15,6 +15,17 @@ function formatTimestamp(value) {
   });
 }
 
+function formatVisitDate(value) {
+  if (!value) return "Data da visita não informada";
+  return new Date(value).toLocaleString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export default function ChatRoom() {
   const { roomId } = useParams();
   const { token, user, isAuthenticated, refreshUnreadChatsCount } = useAuth();
@@ -160,9 +171,9 @@ export default function ChatRoom() {
           </div>
           <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500">
             <span>Com {counterpart?.name || "participante"}</span>
-            <span>Visita #{room?.visit?.id || "-"}</span>
+            <span>Visita marcada para {formatVisitDate(room?.visit?.scheduled_at)}</span>
             <span className={socketConnected ? "text-emerald-600" : "text-amber-600"}>
-              {socketConnected ? "Conectado em tempo real" : "Reconectando..."}
+              {socketConnected ? "Conectado" : "Reconectando..."}
             </span>
           </div>
         </header>

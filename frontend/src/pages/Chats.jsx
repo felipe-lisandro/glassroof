@@ -9,6 +9,17 @@ function formatDate(value) {
   return new Date(value).toLocaleString("pt-BR");
 }
 
+function formatVisitDate(value) {
+  if (!value) return "Data não informada";
+  return new Date(value).toLocaleString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export default function Chats() {
   const { token, user, isAuthenticated } = useAuth();
   const [rooms, setRooms] = useState([]);
@@ -77,7 +88,7 @@ export default function Chats() {
                       <h2 className="text-xl font-semibold text-gray-900">{room.property?.name || "Imóvel"}</h2>
                     </div>
                     <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
-                      Visita #{room.visit?.id}
+                      Visita: {formatVisitDate(room.visit?.scheduled_at)}
                     </span>
                   </div>
 

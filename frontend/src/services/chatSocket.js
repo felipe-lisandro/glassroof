@@ -6,5 +6,6 @@ export function createChatSocket(token) {
   return io(API_URL, {
     autoConnect: true,
     auth: { token },
+    transports: ["polling"],
   });
 }
