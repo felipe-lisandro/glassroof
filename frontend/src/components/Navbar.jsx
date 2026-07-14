@@ -3,7 +3,7 @@ import { NavLink, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
 export default function Navbar() {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout, unreadChatsCount } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
@@ -53,6 +53,11 @@ export default function Navbar() {
               className="flex items-center gap-2 px-4 py-2 bg-zinc-800 text-white rounded-md hover:bg-zinc-700 transition-all border border-zinc-600"
             >
               <span className="text-xs font-bold uppercase tracking-wider">{user?.name}</span>
+              {unreadChatsCount > 0 && (
+                <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
+                  {unreadChatsCount}
+                </span>
+              )}
               <svg 
                 className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} 
                 fill="none" stroke="currentColor" viewBox="0 0 24 24"
@@ -87,6 +92,19 @@ export default function Navbar() {
                   className="block px-4 py-2 text-sm text-blue-300 hover:bg-zinc-800 transition-colors"
                 >
                   Minhas Visitas
+                </Link>
+
+                <Link
+                  to="/chats"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center justify-between px-4 py-2 text-sm text-blue-300 hover:bg-zinc-800 transition-colors"
+                >
+                  <span>Chats</span>
+                  {unreadChatsCount > 0 && (
+                    <span className="rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-bold text-white">
+                      {unreadChatsCount}
+                    </span>
+                  )}
                 </Link>
 
                 <button

@@ -9,6 +9,8 @@ import PropertyDetails from "../pages/PropertyDetails";
 import CreatePropertyEvaluation from "../pages/CreatePropertyEvaluation";
 import AgendarVisita from "../pages/AgendarVisita";
 import MinhasVisitas from "../pages/MinhasVisitas";
+import Chats from "../pages/Chats";
+import ChatRoom from "../pages/ChatRoom";
 
 export default function AppRoutes() {
   return (
@@ -23,6 +25,8 @@ export default function AppRoutes() {
       <Route path="/imovel/:id/avaliar" element={<CreatePropertyEvaluation />} />
       <Route path="/imovel/:id/agendar" element={<AgendarVisita />} />
       <Route path="/minhas-visitas" element={<MinhasVisitas />} />
+      <Route path="/chats" element={<Chats />} />
+      <Route path="/chats/:roomId" element={<ChatRoom />} />
     </Routes>
   )
 }
