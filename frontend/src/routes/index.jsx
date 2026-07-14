@@ -26,7 +26,7 @@ export default function AppRoutes() {
       <Route path="/imovel/:id/agendar" element={<AgendarVisita />} />
       <Route path="/minhas-visitas" element={<MinhasVisitas />} />
       <Route path="/chats" element={<Chats />} />
-      <Route path="/chats/:roomId" element={<ChatRoom />} />
+      <Route path="/sobre-nos" element={<Chats />} />
     </Routes>
   )
 }
