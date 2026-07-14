@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
@@ -37,7 +37,7 @@ def _create_property(app, enterprise_id, name="Imovel Test"):
 
 def _create_visit_payload(prop_id, user_id, scheduled_at=None, note=None):
     if scheduled_at is None:
-        scheduled_at = (datetime.utcnow() + timedelta(days=1)).isoformat()
+        scheduled_at = (datetime.now(timezone.utc) + timedelta(days=1)).isoformat()
     payload = {
         "property_id": prop_id,
         "user_id": user_id,
@@ -159,13 +159,13 @@ def test_scheduled_at_iso_z_and_offset_acceptance(client, app):
     prop = _create_property(app, ent)
 
     # Zulu / UTC suffix
-    future = (datetime.utcnow() + timedelta(days=2)).replace(microsecond=0).isoformat() + "Z"
+    future = (datetime.now(timezone.utc) + timedelta(days=2)).replace(microsecond=0).isoformat().replace("+00:00", "Z")
     payload_z = _create_visit_payload(prop, person, scheduled_at=future)
     rz = client.post("/visits", data=json.dumps(payload_z), content_type="application/json")
     assert rz.status_code == 201
 
     # timezone offset with fractional seconds
-    future2 = (datetime.utcnow() + timedelta(days=3)).isoformat() + ".123+02:00"
+    future2 = (datetime.now(timezone.utc) + timedelta(days=3)).astimezone(timezone(timedelta(hours=2))).isoformat(timespec='milliseconds')
     payload_off = _create_visit_payload(prop, person, scheduled_at=future2)
     ro = client.post("/visits", data=json.dumps(payload_off), content_type="application/json")
     assert ro.status_code == 201
