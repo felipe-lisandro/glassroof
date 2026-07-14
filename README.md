@@ -99,7 +99,7 @@ O **Glassroof** adota uma **arquitetura em camadas (Layered Architecture)** comb
 │                                      │  (Relacional)    │    │
 │                                      └──────────────────┘    │
 │                                                              │
-└─────────────────────────────────────────────────────────────┘
+└──────────────────────────────────────────────────────────────┘
 
 Atores:
 • Usuários (Visitantes, Inquilinos, Imobiliárias)
