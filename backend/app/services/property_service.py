@@ -1,4 +1,5 @@
 from app import db
+from app.models.avaliation import Avaliation
 from app.models.property import Property
 from app.services.location_service import create_location
 from app.services.image_service import create_image
@@ -52,8 +53,24 @@ def get_properties_from_enterprise(enterprise_id: int) -> list[dict]:
     return [property.to_dict() for property in properties]
 
 def get_all_properties() -> list[dict]:
-    properties = Property.query.all()
-    return [property.to_dict() for property in properties]
+    rows = (
+        db.session.query(Property, db.func.avg(Avaliation.stars))
+        .outerjoin(Avaliation, Avaliation.property_id == Property.id)
+        .group_by(Property.id)
+        .all()
+    )
+
+    result = []
+    for property, average_rating in rows:
+        data = property.to_dict()
+        data["overall_rating"] = (
+            round(float(average_rating), 1)
+            if average_rating is not None
+            else property.overall_rating
+        )
+        result.append(data)
+
+    return result
 
 def get_property_by_id(property_id: int) -> dict | None:
     property = db.session.get(Property, property_id)

@@ -38,6 +38,7 @@ function Properties() {
               description={prop.description}
               price={`R$ ${prop.price}`}
               imageUrl={prop.images?.[0]?.URL} // Pega a primeira imagem da lista
+              overallRating={prop.overall_rating}
             />
           ))}
         </div>
