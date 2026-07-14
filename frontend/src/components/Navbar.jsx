@@ -21,9 +21,6 @@ export default function Navbar() {
           <NavLink to='/imoveis' className={({ isActive }) =>
             `nav-link ${isActive ? "nav-link-active" : ""}`
           }>Imóveis</NavLink>
-          <NavLink to='/imobiliarias' className={({ isActive }) =>
-            `nav-link ${isActive ? "nav-link-active" : ""}`
-          }>Imobiliárias</NavLink>
           <NavLink to='/sobre' className={({ isActive }) =>
             `nav-link ${isActive ? "nav-link-active" : ""}`
           }>Sobre nós</NavLink>
